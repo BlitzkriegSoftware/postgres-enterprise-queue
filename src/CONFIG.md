@@ -1,0 +1,75 @@
+# Configuring the new PEQ
+
+> PEQ: Postgres Enterprise Queue
+
+## Where the configuration is
+
+```sql
+{schema}.queue_configuration
+```
+
+## The Configuration Schema
+
+* setting_name (string) [PK]
+  - the setting name
+* value (string)
+  - The value of the configuration setting
+* unit (string)
+  - Postgres [INTERVAL](https://neon.com/postgresql/postgresql-tutorial/postgresql-interval) data type AKA `SET intervalstyle = 'postgres';`
+  - Only one interval unit is allowed and only Postgres unit notations are supported: `years, months, days, hours, minutes, seconds`
+* casted_as (string)
+  - if it gets casted to some other type when used, this field is advisory the code expects the type it expects
+  - Do not change this field value as it will have no effect at runtime
+  - default: `INTEGER`
+* note (text)
+  - You can and should change the contents of this column if you change the setting in the `value` column
+* modified_on (timestamp w. timezone)
+  - Trigger driven
+  - Defaults to queue create timestamp
+
+### Warnings
+
+Unless your team customizes the code, making any structural changes to this table, adding, removing, editing key names, etc. is a **BAD** idea.
+
+## What the configuration settings do
+
+AKA the rows in the table
+
+| setting_name | default | unit | overwritable per operation | commentary |
+|:---|---:|:---|:---|:---|
+| item_ttl | 4320 | Minutes | yes | items in the queue live for this # of minutes, before they get moved to dead_letter table, this is a very long time. |
+| lease_duration | 30 | seconds | yes | this is the default lease on an item, if not specified in the call, think hard about this and measure it against the time to execute one unit of work, and then make the lease time about 20% more give or take; but monitor how many retries it takes to process a message on average, and when the system is under stress and adjust |
+| dead_letter_retention | 30 | days | no | messages are purged from dead letter after this many days. Remember messages can be requeued using the procedures, see [SCHEMA](./SCHEMA.md). Frankly after this many days if you haven't noticed you're missing the unit of work, the system has bigger problems... |
+| history_retention | 181 | days | no | this should be adjusted for your orgs data retention policy. Removal from history is a hard delete, but history can be recovered from backups |
+| max_retries | 5 | count | no | A message can be processed no more than this many times. Backoff is exponential and jittered, see next settings |
+| backoff_base | 10 | seconds | no | think carefully before changing any of these settings, see next section |
+| backoff_factor | 2 | number | no | (ditto) |
+| backoff_jitter_min | 11 | number | no | (ditto) |
+| backoff_jitter_max | 99 | number | no | (ditto) |
+
+## Backoff formula for retries
+
+This is *pseudocode*, the snake_case is the setting above, the java-case is the computed variable for the message.
+
+```javascript
+// The message starts life with ZERO retries, so...
+numberOfRetries = numberOfRetries + 1;
+// Exponential Backoff
+delay = backoff_base * (backoff_factor ** numberOfRetries);
+// With Jitter
+seconds_from_now_message_will_be_available = delay + randomBetween(backoff_jitter_min, backoff_jitter_max);
+```
+
+### Example Delays
+
+<img src='./backoff.png' width='400px'>
+
+Or from about 1/2 a minute to less than 7 minutes increasing in duration per retry.
+
+### Sidebar: Why Jitter?
+
+It helps avoid collisions in cases where the message processing (consumer) is transitory unavailable. See [YouTube: Queue-Pacing and Overrun Pattern](https://www.youtube.com/watch?v=94aRBEYST7I) for more details.
+
+### Important
+
+Before changing the backoff settings, we strongly suggest using the enclosed [XLSX](./backoff_table.xlsx) to model the impact. Also, consider, if a unit of work can't be completed after 5 tries over approx. 15 minutes, that something else is terriblely wrong.
