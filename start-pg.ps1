@@ -15,7 +15,7 @@
 Import-Module Microsoft.PowerShell.Utility
 
 [int]$PORT=5432
-[string]$HOST="localhost"
+[string]$SERVER="localhost"
 [string]$NAME='postgressvr'
 [string]$IMAGE='postgres:13.22-trixie'
 [string]$MASTERDB='postgres'
@@ -54,7 +54,6 @@ if(! $da) {
 # Dispose of any old running Postgres
 $null = (docker stop "${NAME}") 2> $null
 $null = (docker rm "${NAME}") 2> $null
-SScriptRoot -ChildPath "src"
 
 # Set working variables in PS1
 $null = (setx POSTGRES_USER "${USERNAME}") 2> $null
@@ -62,7 +61,7 @@ $null = (setx POSTGRES_PASSWORD "${PASSWORD}") 2> $null
 
 # Volume mapping path
 [string]$dbPath = Join-Path -Path $PSScriptRoot -ChildPath "data"
-[string]$srcPath = Join-Path -Path $P
+[string]$srcPath = Join-Path -Path $PSScriptRoot -ChildPath "src"
 
 # Create .pgpass file
 $PGPASS_LINES = @(
@@ -73,7 +72,7 @@ $PGPASS_LINES = @(
 	"# Configuration:",
 	"#   hostname:port:database:username:password",
 	"#",
-	"${HOST}:${PORT}:${MASTERDB}:${USERNAME}:${PASSWORD}"
+	"${SERVER}:${PORT}:${MASTERDB}:${USERNAME}:${PASSWORD}"
 )
 
 [string]$PGPASS_FILE="./data/.pgpass" 
