@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # pgpass
-chmod 0600 ./.pgpass
+chmod 0600 /var/lib/postgresql/data/.pgpass
 # Upgrade
 apt update -y
 apt upgrade -y

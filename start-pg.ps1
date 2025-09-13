@@ -88,7 +88,7 @@ foreach($line in $PGPASS_LINES) {
 $CONF_CMDS = @(
 	"#!/usr/bin/env bash",
 	"# pgpass",
-	"chmod 0600 ./.pgpass",
+	"chmod 0600 /var/lib/postgresql/data/.pgpass",
 	"# Upgrade",
 	"apt update -y",
 	"apt upgrade -y",
@@ -97,10 +97,12 @@ $CONF_CMDS = @(
 	"/usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y",
 	"# Cron Plug-In",
 	"apt install postgresql-16-cron -y",
-	"cp ./pgdata/postgresql.conf  ./pgdata/postgresql.conf.backup",
-	"sed -i /#shared_preload_libraries/s/#shared_preload_libraries/shared_preload_libraries/g ./pgdata/postgresql.conf",
-	"sed -i /shared_preload_libraries/s/\'\'/\'pg_cron\'/g ./pgdata/postgresql.conf",
-	"cat ./postgres_conf_adds.txt >> ./pgdata/postgresql.conf",
+	"pushd /var/lib/postgresql/data/pgdata",
+	"cp ./postgresql.conf ./postgresql.conf.backup",
+	"sed -i /#shared_preload_libraries/s/#shared_preload_libraries/shared_preload_libraries/g ./postgresql.conf",
+	"sed -i /shared_preload_libraries/s/\'\'/\'pg_cron\'/g ./postgresql.conf",
+	"cat ../postgres_conf_adds.txt >> ./postgresql.conf",
+	"popd",
 	"# Restart DB",
 	"su -- postgres -c ./configure_pg.sh"
 );
@@ -153,6 +155,9 @@ docker run -d `
 	-v "${dbPath}:${VOL}" `
 	-v "${srcPath}:${SRC}" `
 	-p "${PORT}:${PORT}" postgres
+
+# Wait for Startup
+Start-Sleep -Seconds 15
 
 # Customize postgres
 $script="configure_pg.sh"
