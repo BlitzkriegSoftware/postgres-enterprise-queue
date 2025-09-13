@@ -93,15 +93,13 @@ $CONF_CMDS = @(
 	"# Upgrade",
 	"apt update -y",
 	"apt upgrade -y",
-	"apt install curl ca-certificates -y",
+	"apt install curl ca-certificates cron -y",
 	"# Register plug-in source",
 	"/usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y",
 	"# Cron Plug-In",
 	"apt install postgresql-16-cron -y",
 	"pushd /var/lib/postgresql/data/pgdata",
 	"cp ./postgresql.conf ./postgresql.conf.backup",
-	"sed -i /#shared_preload_libraries/s/#shared_preload_libraries/shared_preload_libraries/g ./postgresql.conf",
-	"sed -i /shared_preload_libraries/s/\'\'/\'pg_cron\'/g ./postgresql.conf",
 	"cat ../postgres_conf_adds.txt >> ./postgresql.conf",
 	"popd",
 	"# Restart DB",
@@ -118,8 +116,10 @@ foreach($line in $CONF_CMDS) {
 
 $RESTART_CMDS = @(
 	"#!/usr/bin/env bash",
+	"set -o xtrace",
 	"cd /usr/lib/postgresql/17/bin",
-	"pg_ctl restart --mode=fast"
+	"pg_ctl restart --mode=fast",
+	"set +o xtrace"
 )
 [string]$REBOOT_SCRIPT='./data/restart_pg.sh';
 if (Test-Path $REBOOT_SCRIPT) {
@@ -154,7 +154,7 @@ docker run -d `
 	-e "PGPASSFILE=${PGPASS_FILE}" `
 	-e PGDATA='/var/lib/postgresql/data/pgdata' `
 	--name="${NAME}" `
-	--restart no `
+	--restart always `
 	-v "${dbPath}:${VOL}" `
 	-v "${srcPath}:${SRC}" `
 	-p "${PORT}:${PORT}" postgres
