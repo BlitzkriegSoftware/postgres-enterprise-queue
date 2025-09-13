@@ -2,6 +2,8 @@
 
 > PEQ: Postgres Enterprise Queue
 
+It is useful to read the base [README](../README.md) and [MESSAGE_LIFECYCLE](/src/MESSAGE_LIFECYCLE.md)
+
 ## Where the configuration is
 
 ```sql
