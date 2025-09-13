@@ -15,8 +15,14 @@
 * value (string)
   - The value of the configuration setting
 * unit (string)
-  - Postgres [INTERVAL](https://neon.com/postgresql/postgresql-tutorial/postgresql-interval) data type AKA `SET intervalstyle = 'postgres';`
-  - Only one interval unit is allowed and only Postgres unit notations are supported: `years, months, days, hours, minutes, seconds`
+  - Postgres [INTERVAL](https://neon.com/postgresql/postgresql-tutorial/postgresql-interval) data type AKA
+    ```sql
+    SET intervalstyle = 'postgres';
+    ```
+  - Only one interval unit is allowed and only Postgres unit notations are supported: 
+    ```text
+    years, months, days, hours, minutes, seconds
+    ```
 * casted_as (string)
   - if it gets casted to some other type when used, this field is advisory the code expects the type it expects
   - Do not change this field value as it will have no effect at runtime
@@ -35,17 +41,22 @@ Unless your team customizes the code, making any structural changes to this tabl
 
 AKA the rows in the table
 
-| setting_name | default | unit | overwritable per operation | commentary |
+| setting_name | default | unit | overridable (1) | commentary |
 |:---|---:|:---|:---|:---|
-| item_ttl | 4320 | Minutes | yes | items in the queue live for this # of minutes, before they get moved to dead_letter table, this is a very long time. |
-| lease_duration | 30 | seconds | yes | this is the default lease on an item, if not specified in the call, think hard about this and measure it against the time to execute one unit of work, and then make the lease time about 20% more give or take; but monitor how many retries it takes to process a message on average, and when the system is under stress and adjust |
+| item_delay | 0 | seconds | yes | delay making message available by this number of seconds, sometimes its useful to have a short initial delay. More often, a jitted value when queuing up batches of messages is useful. For scheduling messages in the future, use the parameters in the procedures, see [SCHEMA](./SCHEMA.md). |
+| item_ttl | 4320 | minutes | yes | items in the queue live for this # of minutes, before they get moved to dead_letter table, this is a very long time. If anything, consider shortening it. |
+| lease_duration | 30 | seconds | yes | this is the default lease on an item, if not specified in the call, think hard about this by monitoring the average unit of work, and adjust the setting to be that time plus two standard deviations (rounding up to the nearest second), and remember to consider what should happpen when the system is under stress and adjust the lease time setting as needed either in here or as a parameter to the procedure calls. The "art" is to balance making sure most units of work that will complete successfully do finish, and those that will not, will not VS. having the unit of work (which represents business value) be overly delayed. The happy path is this value is never used. |
 | dead_letter_retention | 30 | days | no | messages are purged from dead letter after this many days. Remember messages can be requeued using the procedures, see [SCHEMA](./SCHEMA.md). Frankly after this many days if you haven't noticed you're missing the unit of work, the system has bigger problems... |
 | history_retention | 181 | days | no | this should be adjusted for your orgs data retention policy. Removal from history is a hard delete, but history can be recovered from backups |
-| max_retries | 5 | count | no | A message can be processed no more than this many times. Backoff is exponential and jittered, see next settings |
+| max_retries | 5 | count | no | A message can be processed no more than this many times. Backoff is exponential and jittered, see next settings. Carefully concider if the total maximum elapsed time to process a message and get around to successfully executing its associated unit of work is reasonable.  |
 | backoff_base | 10 | seconds | no | think carefully before changing any of these settings, see next section |
 | backoff_factor | 2 | number | no | (ditto) |
 | backoff_jitter_min | 11 | number | no | (ditto) |
 | backoff_jitter_max | 99 | number | no | (ditto) |
+
+Notes:
+
+1. E.g., is it an optional parameter in the associated procedure(s)
 
 ## Backoff formula for retries
 
