@@ -419,3 +419,6 @@ FodyWeavers.xsd
 
 # pgdata folder
 **/pgdata/
+
+# pgpass
+**/.pgpass
