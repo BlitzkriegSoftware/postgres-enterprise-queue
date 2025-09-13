@@ -7,13 +7,63 @@
 /**
  * Constants
  */
-const DEFAULT_POSTGRES = 'postgresql://postgres:password123-@localhost/postgres';
-
+const DEFAULT_POSTGRES =
+  'postgresql://postgres:password123-@localhost/postgres';
+const POSTGRES_RESERVED_WORDS = [
+  'select',
+  'from',
+  'where',
+  'insert',
+  'update',
+  'delete',
+  'create',
+  'alter',
+  'drop and',
+  'or',
+  'not',
+  'in',
+  'like',
+  'between',
+  'as all',
+  'any',
+  'asc',
+  'desc',
+  'case',
+  'cast current_date',
+  'current_time',
+  'current_timestamp',
+  'current_user exists',
+  'false',
+  'true',
+  'null join',
+  'inner',
+  'left',
+  'right',
+  'full',
+  'outer group by',
+  'having',
+  'order by union',
+  'intersect',
+  'except',
+  'abort',
+  'analyze',
+  'binary',
+  'cluster',
+  'copy do',
+  'explain',
+  'listen',
+  'lock',
+  'notify offset',
+  'reset',
+  'setof',
+  'show',
+  'unlisten until',
+  'vacuum',
+  'verbose',
+];
 /**
  * Includes
  */
-
-// import process from 'node:process';
 import * as pg from 'pg';
 import { exit } from 'process';
 import yargs from 'yargs';
@@ -59,6 +109,24 @@ function isBlank(text: any) {
  */
 function isNumber(value: any) {
   return typeof value === 'number';
+}
+
+/**
+ * Checks for simple postgres identifier names
+ * Checks for reserved words
+ * Enforces 63 character limit
+ * Note: use lower snake case as a best practice
+ * @param text {string}
+ * @returns {boolean}
+ */
+function isValidPostgresName(text: string): boolean {
+  let flag =
+    !text || /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(text) || text.length <= 63;
+  if (flag) {
+    const t1 = text.trim().toLowerCase();
+    flag = !POSTGRES_RESERVED_WORDS.includes(t1);
+  }
+  return flag;
 }
 
 //
@@ -118,13 +186,20 @@ async function main() {
       describe: 'connection string, including database',
       demandOption: false,
       type: 'string',
-      default: DEFAULT_POSTGRES
+      default: DEFAULT_POSTGRES,
     })
     .option('s', {
       alias: 'schema',
       describe: 'Schema to create enterprise queue in, must be unique',
       type: 'string',
-      demandOption: true
+      demandOption: true,
+    })
+    .option('r', {
+      alias: 'role',
+      describe:
+        'roles to grant schema and its objects to, if not specified uses user in connection string, if specified and does not exist, role with appropriate permissions created',
+      type: 'string',
+      demandOption: false,
     })
     .parseSync();
 
@@ -133,12 +208,26 @@ async function main() {
 
   try {
     await client.connect();
+    if (!isValidPostgresName(commandlineargs.s)) {
+      throw new Error(
+        `Schema:: Invalid Postgres Identifier: ${commandlineargs.s}`,
+      );
+    }
+    if (!isBlank(commandlineargs.r)) {
+      if (!isValidPostgresName(commandlineargs.r)) {
+        throw new Error(
+          `Role:: Invalid Postgres Identifier: ${commandlineargs.r}`,
+        );
+      }
+      // check if role exists, if not create role
+    }
 
-   
-    // TODO
-   
-
-  
+    // Create Schema
+    // Execute Script Merge
+    // Play Script
+    // Run Tests
+    // Clear out Queue so its ready for use
+    // Refer them to CONFIG.md
   } catch (e) {
     console.log(e);
   } finally {
