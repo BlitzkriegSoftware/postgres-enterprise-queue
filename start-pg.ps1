@@ -87,6 +87,7 @@ foreach($line in $PGPASS_LINES) {
 # Command stack to customize Postgres
 $CONF_CMDS = @(
 	"#!/usr/bin/env bash",
+	"set -o xtrace",
 	"# pgpass",
 	"chmod 0600 /var/lib/postgresql/data/.pgpass",
 	"# Upgrade",
@@ -104,7 +105,8 @@ $CONF_CMDS = @(
 	"cat ../postgres_conf_adds.txt >> ./postgresql.conf",
 	"popd",
 	"# Restart DB",
-	"su -- postgres -c ./configure_pg.sh"
+	"su -- postgres -c /var/lib/postgresql/data/restart_pg.sh",
+	"set +o xtrace"
 );
 [string]$CUST_SCRIPT='./data/configure_pg.sh';
 if (Test-Path $CUST_SCRIPT) {
