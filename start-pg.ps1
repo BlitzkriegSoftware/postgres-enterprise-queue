@@ -154,6 +154,7 @@ docker run -d `
 	-e "PGPASSFILE=${PGPASS_FILE}" `
 	-e PGDATA='/var/lib/postgresql/data/pgdata' `
 	--name="${NAME}" `
+	--restart no `
 	-v "${dbPath}:${VOL}" `
 	-v "${srcPath}:${SRC}" `
 	-p "${PORT}:${PORT}" postgres
