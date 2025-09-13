@@ -14,4 +14,4 @@ sed -i /#shared_preload_libraries/s/#shared_preload_libraries/shared_preload_lib
 sed -i /shared_preload_libraries/s/\'\'/\'pg_cron\'/g ./pgdata/postgresql.conf
 cat ./postgres_conf_adds.txt >> ./pgdata/postgresql.conf
 # Restart DB
-systemctl restart postgresql
+su -- postgres -c ./configure_pg.sh

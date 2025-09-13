@@ -23,7 +23,7 @@ Import-Module Microsoft.PowerShell.Utility
 [string]$PASSWORD='password123-'
 [string]$VOL="/var/lib/postgresql/data"
 [string]$SRC="/var/lib/postgresql/src"
-[string]$HOMEDIR="/var/lib/postgresql"
+[string]$PGPASS_FILE='/var/lib/postgresql/data/.pgpass'
 
 function Get-DockerRunning {
 
@@ -85,7 +85,7 @@ foreach($line in $PGPASS_LINES) {
 }
 
 # Command stack to customize Postgres
-$CMDS = @(
+$CONF_CMDS = @(
 	"#!/usr/bin/env bash",
 	"# pgpass",
 	"chmod 0600 ./.pgpass",
@@ -102,24 +102,36 @@ $CMDS = @(
 	"sed -i /shared_preload_libraries/s/\'\'/\'pg_cron\'/g ./pgdata/postgresql.conf",
 	"cat ./postgres_conf_adds.txt >> ./pgdata/postgresql.conf",
 	"# Restart DB",
-	"systemctl restart postgresql"
+	"su -- postgres -c ./configure_pg.sh"
 );
-
 [string]$CUST_SCRIPT='./data/configure_pg.sh';
 if (Test-Path $CUST_SCRIPT) {
     Remove-Item $CUST_SCRIPT -Force
 }
-foreach($line in $CMDS) {
+foreach($line in $CONF_CMDS) {
 	Write-Output $line >> $CUST_SCRIPT
+}
+
+$RESTART_CMDS = @(
+	"#!/usr/bin/env bash",
+	"cd /usr/lib/postgresql/17/bin",
+	"pg_ctl restart --mode=fast"
+)
+[string]$REBOOT_SCRIPT='./data/restart_pg.sh';
+if (Test-Path $REBOOT_SCRIPT) {
+    Remove-Item $REBOOT_SCRIPT -Force
+}
+foreach($line in $RESTART_CMDS) {
+	Write-Output $line >> $REBOOT_SCRIPT
 }
 
 # Windows to linux file ending fixs
 $FILES_TO_PATCH = @(
 	"./data/postgres_conf_adds.txt",
 	"${CUST_SCRIPT}",
-	"${PGPASS_FILE}"
+	"${PGPASS_FILE}",
+	"${REBOOT_SCRIPT}"
 )
-
 foreach ($FilePath in $FILES_TO_PATCH) {
 	(Get-Content -Raw -Path $FilePath) -replace "`r`n","`n" | Set-Content -Path $FilePath -NoNewline
 }
@@ -130,8 +142,6 @@ $null = (Remove-Item -Path $pgDir -Recurse -Force) 2> $null
 
 # Ensure clean pull of pinned image
 $null = (docker pull $IMAGE) 2> $null
-
-[string]$PGPASS_FILE='/var/lib/postgresql/data/.pgpass';
 
 # Start the container
 docker run -d `
@@ -146,6 +156,6 @@ docker run -d `
 
 # Customize postgres
 $script="configure_pg.sh"
-docker exec --workdir "${SRC}" "${NAME}" "${SRC}/${script}"
+docker exec --workdir "${SRC}" "${NAME}" "${VOL}/${script}"
 
 Write-Output "PostgreSql running on ${PORT} as ${USERNAME} with ${PASSWORD}"
