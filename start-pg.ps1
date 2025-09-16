@@ -24,6 +24,7 @@ Import-Module Microsoft.PowerShell.Utility
 [string]$VOL="/var/lib/postgresql/data"
 [string]$SRC="/var/lib/postgresql/src"
 [string]$PGPASS_FILE='/var/lib/postgresql/data/.pgpass'
+[string]$CUSTOM_IMAGE='postgres_cron'
 
 function Get-DockerRunning {
 
@@ -67,7 +68,7 @@ $null = (setx POSTGRES_PASSWORD "${PASSWORD}") 2> $null
 # Create .pgpass file
 $PGPASS_LINES = @(
 	"# File: $HOME/.pgpass",
-	"#       chmod 600 /home/myusername/.pgpass",
+	"#       chmod 600 $HOME/.pgpass",
 	"#       export PGPASSFILE=$HOME/.pgpass",
 	"#",
 	"# Configuration:",
@@ -84,57 +85,9 @@ foreach($line in $PGPASS_LINES) {
 	Write-Output $line >> $PGPASS_FILE
 }
 
-# Command stack to customize Postgres
-$CONF_CMDS = @(
-	"#!/usr/bin/env bash",
-	"set -o xtrace",
-	"# pgpass",
-	"chmod 0600 /var/lib/postgresql/data/.pgpass",
-	"# Upgrade",
-	"apt update -y",
-	"apt upgrade -y",
-	"apt install curl ca-certificates cron -y",
-	"# Register plug-in source",
-	"/usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y",
-	"# Cron Plug-In",
-	"apt install postgresql-16-cron -y",
-	"pushd /var/lib/postgresql/data/pgdata",
-	"cp ./postgresql.conf ./postgresql.conf.backup",
-	"cat ../postgres_conf_adds.txt >> ./postgresql.conf",
-	"popd",
-	"# Restart DB",
-	"su -- postgres -c /var/lib/postgresql/data/restart_pg.sh",
-	"set +o xtrace"
-);
-[string]$CUST_SCRIPT='./data/configure_pg.sh';
-if (Test-Path $CUST_SCRIPT) {
-    Remove-Item $CUST_SCRIPT -Force
-}
-foreach($line in $CONF_CMDS) {
-	Write-Output $line >> $CUST_SCRIPT
-}
-
-$RESTART_CMDS = @(
-	"#!/usr/bin/env bash",
-	"set -o xtrace",
-	"cd /usr/lib/postgresql/17/bin",
-	"pg_ctl restart --mode=fast",
-	"set +o xtrace"
-)
-[string]$REBOOT_SCRIPT='./data/restart_pg.sh';
-if (Test-Path $REBOOT_SCRIPT) {
-    Remove-Item $REBOOT_SCRIPT -Force
-}
-foreach($line in $RESTART_CMDS) {
-	Write-Output $line >> $REBOOT_SCRIPT
-}
-
 # Windows to linux file ending fixs
 $FILES_TO_PATCH = @(
-	"./data/postgres_conf_adds.txt",
-	"${CUST_SCRIPT}",
-	"${PGPASS_FILE}",
-	"${REBOOT_SCRIPT}"
+	"${PGPASS_FILE}"
 )
 foreach ($FilePath in $FILES_TO_PATCH) {
 	(Get-Content -Raw -Path $FilePath) -replace "`r`n","`n" | Set-Content -Path $FilePath -NoNewline
@@ -145,7 +98,8 @@ $pgDir =  Join-Path -Path $dbPath -ChildPath "pgdata"
 $null = (Remove-Item -Path $pgDir -Recurse -Force) 2> $null
 
 # Ensure clean pull of pinned image
-$null = (docker pull $IMAGE) 2> $null
+#$null = (docker pull $IMAGE) 2> $null
+docker build -t "${CUSTOM_IMAGE}" .
 
 # Start the container
 docker run -d `
@@ -157,10 +111,10 @@ docker run -d `
 	--restart always `
 	-v "${dbPath}:${VOL}" `
 	-v "${srcPath}:${SRC}" `
-	-p "${PORT}:${PORT}" postgres
+	-p "${PORT}:${PORT}" "${CUSTOM_IMAGE}"
 
 # Wait for Startup
-Start-Sleep -Seconds 15
+# Start-Sleep -Seconds 10
 
 # Customize postgres
 $script="configure_pg.sh"
