@@ -117,7 +117,7 @@ docker run -d `
 # Start-Sleep -Seconds 10
 
 # Customize postgres
-$script="configure_pg.sh"
-docker exec --workdir "${SRC}" "${NAME}" "${VOL}/${script}"
+#$script="configure_pg.sh"
+#docker exec --workdir "${SRC}" "${NAME}" "${VOL}/${script}"
 
 Write-Output "PostgreSql running on ${PORT} as ${USERNAME} with ${PASSWORD}"
