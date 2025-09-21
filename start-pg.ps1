@@ -17,7 +17,7 @@ Import-Module Microsoft.PowerShell.Utility
 [int]$PORT=5432
 [string]$SERVER="localhost"
 [string]$NAME='postgressvr'
-[string]$IMAGE='postgres:13.22-trixie'
+[string]$BIN='/usr/lib/postgresql/16/bin'
 [string]$MASTERDB='postgres'
 [string]$USERNAME='postgres'
 [string]$PASSWORD='password123-'
@@ -87,7 +87,8 @@ foreach($line in $PGPASS_LINES) {
 
 # Windows to linux file ending fixs
 $FILES_TO_PATCH = @(
-	"${PGPASS_FILE}"
+	"${PGPASS_FILE}",
+	".\data\postgresql.conf.cron"
 )
 foreach ($FilePath in $FILES_TO_PATCH) {
 	(Get-Content -Raw -Path $FilePath) -replace "`r`n","`n" | Set-Content -Path $FilePath -NoNewline
@@ -116,8 +117,14 @@ docker run -d `
 # Wait for Startup
 # Start-Sleep -Seconds 10
 
+$CMDS = @(
+	"cp /var/lib/postgresql/data/postgresql.conf.cron /var/lib/postgresql/data/pgdata/postgresql.conf",
+	"su -- postgres -c 'pg_ctl restart'"
+);
+
 # Customize postgres
-#$script="configure_pg.sh"
-#docker exec --workdir "${SRC}" "${NAME}" "${VOL}/${script}"
+foreach($cmd in $CMDS) {
+	docker exec --workdir "${BIN}" "${NAME}" "${cmd}"
+}
 
 Write-Output "PostgreSql running on ${PORT} as ${USERNAME} with ${PASSWORD}"
