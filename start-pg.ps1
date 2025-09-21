@@ -88,7 +88,8 @@ foreach($line in $PGPASS_LINES) {
 # Windows to linux file ending fixs
 $FILES_TO_PATCH = @(
 	"${PGPASS_FILE}",
-	".\data\postgresql.conf.cron"
+	".\data\postgresql.conf.cron",
+	".\data\configure_pg.sh"
 )
 foreach ($FilePath in $FILES_TO_PATCH) {
 	(Get-Content -Raw -Path $FilePath) -replace "`r`n","`n" | Set-Content -Path $FilePath -NoNewline
@@ -115,16 +116,10 @@ docker run -d `
 	-p "${PORT}:${PORT}" "${CUSTOM_IMAGE}"
 
 # Wait for Startup
-# Start-Sleep -Seconds 10
+Write-Output "Waiting for container to start..."
+Start-Sleep -Seconds 30
 
-$CMDS = @(
-	"cp /var/lib/postgresql/data/postgresql.conf.cron /var/lib/postgresql/data/pgdata/postgresql.conf",
-	"su -- postgres -c 'pg_ctl restart'"
-);
+# Set up plugins
+docker exec --workdir "${BIN}" "${NAME}" "/var/lib/postgresql/data/configure_pg.sh"
 
-# Customize postgres
-foreach($cmd in $CMDS) {
-	docker exec --workdir "${BIN}" "${NAME}" "${cmd}"
-}
-
-Write-Output "PostgreSql running on ${PORT} as ${USERNAME} with ${PASSWORD}"
+Write-Output "`nPostgreSql running on ${PORT} as ${USERNAME} with ${PASSWORD}"
