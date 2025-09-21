@@ -51,10 +51,13 @@ AKA the rows in the table
 | dead_letter_retention | 30 | days | no | messages are purged from dead letter after this many days. Remember messages can be requeued using the procedures, see [SCHEMA](./SCHEMA.md). Frankly after this many days if you haven't noticed you're missing the unit of work, the system has bigger problems... |
 | history_retention | 181 | days | no | this should be adjusted for your orgs data retention policy. Removal from history is a hard delete, but history can be recovered from backups |
 | max_retries | 5 | count | no | A message can be processed no more than this many times. Backoff is exponential and jittered, see next settings. Carefully concider if the total maximum elapsed time to process a message and get around to successfully executing its associated unit of work is reasonable.  |
-| backoff_base | 10 | seconds | no | think carefully before changing any of these settings, see next section |
-| backoff_factor | 2 | number | no | (ditto) |
-| backoff_jitter_min | 11 | number | no | (ditto) |
-| backoff_jitter_max | 99 | number | no | (ditto) |
+| backoff_base | 10 | seconds | no | think carefully before changing any of these settings, see 'Backoff formula' |
+| backoff_factor | 2 | number | no | see 'Backoff formula' |
+| backoff_jitter_min | 11 | number | no | see 'Backoff formula' |
+| backoff_jitter_max | 99 | number | no | see 'Backoff formula' |
+| cron_schedule_retention_queue | */7 * * * * * | string | no | Schedule to run the main queue lock clearing procedure on, every 7 minutes |
+| cron_schedule_retention_dead_letter | 0 3 * * * | string | no | Schedule to run the dead-letter cleanup procedure on, 3am Daily |
+| cron_schedule_retention_history | 8 1 * * 6 | string | no | Schedule to run history cleanup procedure on,  1:08am Saturday |
 
 Notes:
 
@@ -86,3 +89,21 @@ It helps avoid collisions in cases where the message processing (consumer) is tr
 ### Important
 
 Before changing the backoff settings, we strongly suggest using the enclosed [XLSX](./backoff_table.xlsx) to model the impact. Also, consider, if a unit of work can't be completed after 5 tries over approx. 15 minutes, that something else is terriblely wrong.
+
+## Cron
+
+Copied from [pg_cron](https://github.com/citusdata/pg_cron/blob/main/README.md?plain=1)
+
+```
+ ┌───────────── min (0 - 59)
+ │ ┌────────────── hour (0 - 23)
+ │ │ ┌─────────────── day of month (1 - 31) or last day of the month ($)
+ │ │ │ ┌──────────────── month (1 - 12)
+ │ │ │ │ ┌───────────────── day of week (0 - 6) (0 to 6 are Sunday to
+ │ │ │ │ │                  Saturday, or use names; 7 is also Sunday)
+ │ │ │ │ │
+ │ │ │ │ │
+ * * * * *
+```
+
+An easy way to create a cron schedule is: [crontab.guru](http://crontab.guru/).
