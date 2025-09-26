@@ -11,6 +11,8 @@ RUN chmod 0600 /var/lib/postgresql/data/.pgpass
 RUN mkdir -p /var/lib/postgresql/data/pgdata
 COPY ./data/configure_pg.sh /var/lib/postgresql/data/configure_pg.sh
 RUN chmod +rx /var/lib/postgresql/data/configure_pg.sh
+COPY ./data/pg_cron_add.sh /var/lib/postgresql/data/pg_cron_add.sh
+RUN chmod +rx /var/lib/postgresql/data/pg_cron_add.sh
 COPY ./data/postgresql.conf.cron /var/lib/postgresql/data/postgresql.conf.cron
 RUN chmod +r /var/lib/postgresql/data/postgresql.conf.cron
 ENV POSTGRES_SHARED_PRELOAD_LIBRARIES="pg_cron"

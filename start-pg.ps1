@@ -89,7 +89,8 @@ foreach($line in $PGPASS_LINES) {
 $FILES_TO_PATCH = @(
 	"${PGPASS_FILE}",
 	".\data\postgresql.conf.cron",
-	".\data\configure_pg.sh"
+	".\data\configure_pg.sh",
+	".\data\pg_cron_add.sh"
 )
 foreach ($FilePath in $FILES_TO_PATCH) {
 	(Get-Content -Raw -Path $FilePath) -replace "`r`n","`n" | Set-Content -Path $FilePath -NoNewline
@@ -121,5 +122,11 @@ Start-Sleep -Seconds 30
 
 # Set up plugins
 docker exec --workdir "${BIN}" "${NAME}" "/var/lib/postgresql/data/configure_pg.sh"
+
+Write-Output "Waiting for container to start..."
+Start-Sleep -Seconds 30
+
+# Register cron
+docker exec --workdir "${BIN}" "${NAME}" "/var/lib/postgresql/data/pg_cron_add.sh"
 
 Write-Output "`nPostgreSql running on ${PORT} as ${USERNAME} with ${PASSWORD}"
