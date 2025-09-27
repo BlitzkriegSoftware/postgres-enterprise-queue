@@ -8,16 +8,44 @@
         Sucess or failure 
 #>
 
-Import-Module Microsoft.PowerShell.Utility
-
-param (
-    [Parameter(Mandatory)][string]$ConnectionString,
-    [Parameter(Mandatory)][string]$SchemaName,
+Param (
+    # Connection String for Postgres
+    [Parameter(Mandatory)]
+    [string]$ConnectionString,
+    # Schema name to create queue in
+    [Parameter(Mandatory)]
+    [string]$SchemaName,
+    # (optional) Role Name
     [string]$RoleName = ''
 )
 
+Import-Module Microsoft.PowerShell.Utility
+
+# Constantts
+[int]$ORDER_INDEX_MIN = 200;
+
 # Variables
 [int]$exitCode = 0;
+[string]$pbin = 'C:\Program Files\PostgreSQL\16\bin\psql.exe';
+
+#
+# Functions
+
+function Get-OrderIndex {
+    param (
+        [string]$ScriptName
+    )
+    [int]$orderIndex = -1;
+    [int]$index = $ScriptName.IndexOf('_');
+    if ($index -ge 0) {
+        [string]$v = $ScriptName.Substring(0, $index);
+        [int]$tv = 0;
+        if ([int]::TryParse($v, [ref]$tv)) {
+            $orderIndex = $tv;
+        }
+    }
+    return $orderIndex;
+}
 
 #
 # Main
@@ -42,7 +70,7 @@ if ([string]::IsNullOrWhiteSpace($SchemaName)) {
 if (Test-Path $tempFolder) {
     Remove-Item $tempFolder -Force -Recurse 
 }
-New-Item -Path $tempFolder -ItemType Directory
+$null = New-Item -Path $tempFolder -ItemType Directory
 Copy-Item -Path "$sqlFolder\*.sql" -Destination $tempFolder
 # replace schema in all files
 $SQL_FILES = Get-ChildItem -Path "${tempFolder}\*.sql" -File -Recurse
@@ -61,8 +89,12 @@ foreach ($FilePath in $SQL_FILES) {
 # Play the SQL Scripts (in order) at Postgres Instance
 foreach ($FilePath in $SQL_FILES) {
     [string]$filename = [System.IO.Path]::GetFileName($FilePath)
-    $filename = "/var/lib/postgresql/data/temp/${filename}";
-
+    [int]$oi = Get-OrderIndex -ScriptName $filename;
+    if ($oi -ge $ORDER_INDEX_MIN) {
+        Set-PSDebug -Trace 2
+        . $pbin -f $FilePath $ConnectionString
+        Set-PSDebug -Off
+    }
 }
 
 #

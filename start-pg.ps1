@@ -89,7 +89,8 @@ $FILES_TO_PATCH = @(
 	"${PGPASS_FILE}",
 	".\data\postgresql.conf.cron",
 	".\data\configure_pg.sh",
-	".\data\pg_cron_add.sh"
+	".\data\pg_cron_add.sh",
+	".\data\pg_script_run.sh"
 )
 
 $SQL_FILES = Get-ChildItem -Path "${dbpath}\*.sql" -File -Recurse
@@ -132,4 +133,6 @@ Start-Sleep -Seconds 30
 # Register cron
 docker exec --workdir "${BIN}" "${NAME}" "/var/lib/postgresql/data/pg_cron_add.sh"
 
-Write-Output "`nPostgreSql running on ${PORT} as ${USERNAME} with ${PASSWORD}"
+[string]$cs = "postgresql://${USERNAME}:${PASSWORD}@${SERVER}:${PORT}/${MASTERDB}";
+
+Write-Output "`n`n${cs}`n`n"
