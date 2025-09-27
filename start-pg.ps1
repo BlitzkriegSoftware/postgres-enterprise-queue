@@ -14,17 +14,17 @@
 
 Import-Module Microsoft.PowerShell.Utility
 
-[int]$PORT=5432
-[string]$SERVER="localhost"
-[string]$NAME='postgressvr'
-[string]$BIN='/usr/lib/postgresql/16/bin'
-[string]$MASTERDB='postgres'
-[string]$USERNAME='postgres'
-[string]$PASSWORD='password123-'
-[string]$VOL="/var/lib/postgresql/data"
-[string]$SRC="/var/lib/postgresql/src"
-[string]$PGPASS_FILE='/var/lib/postgresql/data/.pgpass'
-[string]$CUSTOM_IMAGE='postgres_cron'
+[int]$PORT = 5432
+[string]$SERVER = "localhost"
+[string]$NAME = 'postgressvr'
+[string]$BIN = '/usr/lib/postgresql/16/bin'
+[string]$MASTERDB = 'postgres'
+[string]$USERNAME = 'postgres'
+[string]$PASSWORD = 'password123-'
+[string]$VOL = "/var/lib/postgresql/data"
+[string]$SRC = "/var/lib/postgresql/src"
+[string]$PGPASS_FILE = '/var/lib/postgresql/data/.pgpass'
+[string]$CUSTOM_IMAGE = 'postgres_cron'
 
 function Get-DockerRunning {
 
@@ -33,7 +33,8 @@ function Get-DockerRunning {
 	try {
 		$null = Get-Process 'com.docker.backend' -ErrorAction Stop
 		$DockerAlive = $true;
-	} catch {
+	}
+ catch {
 		$DockerAlive = $false;
 	}
 
@@ -48,7 +49,7 @@ Set-StrictMode -Version 2.0
 Push-Location $PSScriptRoot
 
 [bool]$da = Get-DockerRunning
-if(! $da) {
+if (! $da) {
 	Write-Error "docker must be running 1st"
 	return 1
 }
@@ -77,11 +78,11 @@ $PGPASS_LINES = @(
 	"${SERVER}:${PORT}:${MASTERDB}:${USERNAME}:${PASSWORD}"
 )
 
-[string]$PGPASS_FILE="./data/.pgpass" 
+[string]$PGPASS_FILE = "./data/.pgpass" 
 if (Test-Path $PGPASS_FILE) {
-    Remove-Item $PGPASS_FILE -Force
+	Remove-Item $PGPASS_FILE -Force
 }
-foreach($line in $PGPASS_LINES) {
+foreach ($line in $PGPASS_LINES) {
 	Write-Output $line >> $PGPASS_FILE
 }
 
@@ -90,14 +91,22 @@ $FILES_TO_PATCH = @(
 	"${PGPASS_FILE}",
 	".\data\postgresql.conf.cron",
 	".\data\configure_pg.sh",
-	".\data\pg_cron_add.sh"
+	".\data\pg_cron_add.sh",
+	".\data\sql\020_PG_CRON_EXT.sql",
+	".\data\sql\100_Role.sql",
+	".\data\sql\110_Schema.sql",
+	".\data\sql\200_Settings_Table.sql",
+	".\data\sql\204_Queue_Table.sql",
+	".\data\sql\206_History_Table.sql",
+	".\data\sql\208_DeadLetter_Table.sql",
+	".\data\sql\900_Settings_Data.sql"
 )
 foreach ($FilePath in $FILES_TO_PATCH) {
-	(Get-Content -Raw -Path $FilePath) -replace "`r`n","`n" | Set-Content -Path $FilePath -NoNewline
+	(Get-Content -Raw -Path $FilePath) -replace "`r`n", "`n" | Set-Content -Path $FilePath -NoNewline
 }
 
 # Force a clean start
-$pgDir =  Join-Path -Path $dbPath -ChildPath "pgdata"
+$pgDir = Join-Path -Path $dbPath -ChildPath "pgdata"
 $null = (Remove-Item -Path $pgDir -Recurse -Force) 2> $null
 
 # Ensure clean pull of pinned image
