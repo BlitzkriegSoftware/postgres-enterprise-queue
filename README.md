@@ -24,8 +24,8 @@ Postgres queue with leasing, cleanup, etc, leverages [pg_cron](https://github.co
 
 Here are the documents for Postgres Enterprise Queues (PEQ)
 
-- [Start Here](./README.md)
-- [Message Lifecycle](./src/MESSAGE_LIFECYCLE.md)
-- [Schema](./src/SCHEMA.md)
-- [Adminstration](./src/PEQ_ADMIN.md)
-- [Configuration](./src/CONFIG.md)
+- [Start Here](./doc/README.md)
+- [Message Lifecycle](./doc/MESSAGE_LIFECYCLE.md)
+- [Schema](./doc/SCHEMA.md)
+- [Adminstration](./doc/PEQ_ADMIN.md)
+- [Configuration](./doc/CONFIG.md)

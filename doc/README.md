@@ -27,7 +27,7 @@ Checklist
 ### Invocation
 
 ```powershell
-npx ts-node index.ts -s="${Schema}" -c="${Connection}" [-r="${Role}"]
+.\make-queue.ps1 -ConnectionString="${ConnectionString}" -SchemaName="${SchemaName}" [-RoleName="${RoleName}"]
 ```
 
 * `-c` well formed Postgres connection string including database

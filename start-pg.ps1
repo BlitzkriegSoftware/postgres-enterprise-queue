@@ -22,7 +22,6 @@ Import-Module Microsoft.PowerShell.Utility
 [string]$USERNAME = 'postgres'
 [string]$PASSWORD = 'password123-'
 [string]$VOL = "/var/lib/postgresql/data"
-[string]$SRC = "/var/lib/postgresql/src"
 [string]$PGPASS_FILE = '/var/lib/postgresql/data/.pgpass'
 [string]$CUSTOM_IMAGE = 'postgres_cron'
 
@@ -64,7 +63,6 @@ $null = (setx POSTGRES_PASSWORD "${PASSWORD}") 2> $null
 
 # Volume mapping path
 [string]$dbPath = Join-Path -Path $PSScriptRoot -ChildPath "data"
-[string]$srcPath = Join-Path -Path $PSScriptRoot -ChildPath "src"
 
 # Create .pgpass file
 $PGPASS_LINES = @(
@@ -119,7 +117,6 @@ docker run -d `
 	--name="${NAME}" `
 	--restart always `
 	-v "${dbPath}:${VOL}" `
-	-v "${srcPath}:${SRC}" `
 	-p "${PORT}:${PORT}" "${CUSTOM_IMAGE}"
 
 # Wait for Startup
