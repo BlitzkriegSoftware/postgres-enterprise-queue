@@ -91,16 +91,13 @@ $FILES_TO_PATCH = @(
 	"${PGPASS_FILE}",
 	".\data\postgresql.conf.cron",
 	".\data\configure_pg.sh",
-	".\data\pg_cron_add.sh",
-	".\data\sql\020_PG_CRON_EXT.sql",
-	".\data\sql\100_Role.sql",
-	".\data\sql\110_Schema.sql",
-	".\data\sql\200_Settings_Table.sql",
-	".\data\sql\204_Queue_Table.sql",
-	".\data\sql\206_History_Table.sql",
-	".\data\sql\208_DeadLetter_Table.sql",
-	".\data\sql\900_Settings_Data.sql"
+	".\data\pg_cron_add.sh"
 )
+
+$SQL_FILES = Get-ChildItem -Path "${dbpath}\*.sql" -File -Recurse
+
+$FILES_TO_PATCH = $FILES_TO_PATCH + $SQL_FILES;
+
 foreach ($FilePath in $FILES_TO_PATCH) {
 	(Get-Content -Raw -Path $FilePath) -replace "`r`n", "`n" | Set-Content -Path $FilePath -NoNewline
 }
