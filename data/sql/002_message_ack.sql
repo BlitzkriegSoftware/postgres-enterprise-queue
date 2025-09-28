@@ -1,20 +1,27 @@
--- ACK a Message
-CREATE OR REPLACE PROCEDURE test01.message_ack(message_id uuid, ack_by varchar(128) = 'system', reason_why text = 'completed')
-LANGUAGE SQL
-AS $$
+-- PROCEDURE: {schema}.message_ack(uuid, character varying, text)
+
+DROP PROCEDURE IF EXISTS {schema}.message_ack(uuid, character varying, text);
+
+CREATE OR REPLACE PROCEDURE {schema}.message_ack(
+	IN message_id uuid,
+	IN ack_by character varying DEFAULT 'system'::character varying,
+	IN reason_why text DEFAULT 'completed'::text)
+LANGUAGE 'sql'
+AS $BODY$
 
 BEGIN;
 
-	INSERT INTO test01.message_history(
+	INSERT INTO {schema}.message_history(
 		message_id, message_state_id, created_on, history_on, created_by, message_json, reason_why)
 	SELECT message_id, 3, created_on, CURRENT_TIMESTAMP, ack_by, message_json, reason_why
-		FROM test01.message_queue 
+		FROM {schema}.message_queue 
 		WHERE message_id = message_id;	
 	
-	DELETE FROM test01.message_queue where message_id = message_id;
+	DELETE FROM {schema}.message_queue where message_id = message_id;
 
 	COMMIT;
 
 END;
-$$;
-
+$BODY$;
+ALTER PROCEDURE {schema}.message_ack(uuid, character varying, text)
+    OWNER TO postgres;
