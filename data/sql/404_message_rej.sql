@@ -28,8 +28,8 @@ BEGIN
 	GET DIAGNOSTICS inserted_rows = ROW_COUNT;
 	
 	if inserted_rows = 1 then
-		call {schema}.add_audit(message_id, 7, rej_by, reason_why);
 		DELETE FROM {schema}.message_queue where message_id = message_id;
+		call {schema}.add_audit(message_id, 7, rej_by, reason_why);
 	else
 		call {schema}.add_audit(message_id, 99, rej_by, 'Client did not own impacted queue item');
 		RAISE EXCEPTION 'Client did not own impacted queue item: %', message_id;
