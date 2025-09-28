@@ -1,10 +1,14 @@
--- calculate offset in seconds
-DROP FUNCTION IF EXISTS test01.calculate_offset;
+-- FUNCTION: {schema}.calculate_offset(integer)
 
-CREATE OR REPLACE FUNCTION test01.calculate_offset(numberOfRetries INTEGER)
-RETURNS INTEGER
-LANGUAGE plpgsql
-AS $$
+DROP FUNCTION IF EXISTS {schema}.calculate_offset(integer);
+
+CREATE OR REPLACE FUNCTION {schema}.calculate_offset(
+	numberofretries integer)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
 
 DECLARE
 	backoff_base INTEGER;
@@ -17,22 +21,22 @@ BEGIN
 
 	select COALESCE(CAST(setting_value AS INTEGER),10)
 	into backoff_base
-	from test01.queue_configuration 
+	from {schema}.queue_configuration 
 	where setting_name = 'backoff_base';
 	
 	select COALESCE( CAST(setting_value AS INTEGER),2)
 	into backoff_factor
-	from test01.queue_configuration 
+	from {schema}.queue_configuration 
 	where setting_name = 'backoff_factor';
 	
     select COALESCE(CAST(setting_value AS INTEGER),99)
 	into backoff_jitter_max
-	from test01.queue_configuration 
+	from {schema}.queue_configuration 
 	where setting_name = 'backoff_jitter_max';
 	
     select COALESCE(CAST(setting_value AS INTEGER),11)
 	into backoff_jitter_min
-	from test01.queue_configuration 
+	from {schema}.queue_configuration 
 	where setting_name = 'backoff_jitter_min';
 
 	if(numberOfRetries <= 0) then
@@ -47,5 +51,7 @@ BEGIN
 
 	RETURN delay;
 END;
-$$;	
-	
+$BODY$;
+
+ALTER FUNCTION {schema}.calculate_offset(integer)
+    OWNER TO postgres;
