@@ -37,11 +37,11 @@ BEGIN
 			(leased_by = ack_by) and
 			(lease_expires <= CURRENT_TIMESTAMP)
 		);
+		
 	GET DIAGNOSTICS updated_rows = ROW_COUNT;
-    RETURN updated_rows;
 
-	if(updated_rows < 1) then
-		RAISE EXCEPTION 'Client did not own impacted queue item: %', message_id
+	if updated_rows < 1 then
+		RAISE EXCEPTION 'Client did not own impacted queue item: %', message_id;
 	end if;
 
 	COMMIT;
