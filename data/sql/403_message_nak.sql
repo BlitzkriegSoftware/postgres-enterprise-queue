@@ -2,7 +2,7 @@
 CREATE OR REPLACE PROCEDURE {schema}.message_nak(
 	IN message_id uuid,
 	IN nak_by character varying DEFAULT 'system'::character varying,
-	IN reason_why text DEFAULT 'uow fail'::text)
+	IN reason_why text DEFAULT 'uow fail'::text
 )
 LANGUAGE plpgsql
 AS $$
