@@ -1,6 +1,6 @@
 -- SCHEMA: {schema}
 
-DROP SCHEMA IF EXISTS {schema};
+DROP SCHEMA IF EXISTS {schema} CASCADE;
 
 CREATE SCHEMA IF NOT EXISTS {schema}
     AUTHORIZATION postgres;
