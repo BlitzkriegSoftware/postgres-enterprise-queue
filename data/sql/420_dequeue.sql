@@ -1,13 +1,15 @@
--- {schema}.dequeue one message
+-- FUNCTION: {schema}.dequeue(character varying, integer)
+
+DROP FUNCTION IF EXISTS {schema}.dequeue(character varying, integer);
+
 CREATE OR REPLACE FUNCTION {schema}.dequeue(
-		leased_by varchar(128),
-	    lease_seconds integer = -1
-	)
+	client_id varchar(128),
+	lease_seconds integer DEFAULT '-1'::integer)
     RETURNS {schema}.queue_item
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE PARALLEL UNSAFE
-AS $BODY$
+AS $$
 
 DECLARE
     lease_duration integer := lease_seconds;
@@ -15,6 +17,8 @@ DECLARE
     lease_duration_default integer := 30;
     ts TIMESTAMP := CURRENT_TIMESTAMP;
     expires TIMESTAMP;
+	msg_id uuid;
+	msg_json json;
 BEGIN
     if(lease_duration < lease_duration_min) then
         select COALESCE(CAST(setting_value AS INTEGER), lease_duration_default)
@@ -34,13 +38,16 @@ BEGIN
         FOR UPDATE SKIP LOCKED
     )
     UPDATE {schema}.message_queue
-    SET message_state_id = 2, lease_expires = expires, leased_by = leased_by
+    SET message_state_id = 2, lease_expires = expires, leased_by = client_id
     FROM cte
     WHERE {schema}.message_queue.message_id = cte.message_id
-    RETURNING {schema}.message_queue.message_id, expires, {schema}.message_queue.message_json;
-	
-END;
-$BODY$;
+    RETURNING {schema}.message_queue.message_id, {schema}.message_queue.message_json
+	INTO msg_id, msg_json;
 
-ALTER FUNCTION {schema}.dequeue(varchar(128), integer)
+	return ROW(msg_id, expires, msg_json)::{schema}.queue_item;
+	
+ END;
+ $$;
+
+ALTER FUNCTION {schema}.dequeue(character varying, integer)
     OWNER TO postgres;
