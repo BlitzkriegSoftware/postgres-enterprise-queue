@@ -80,7 +80,7 @@ foreach ($FilePath in $SQL_FILES) {
     if (-not [string]::IsNullOrWhiteSpace($RoleName)) {
         (Get-Content -Raw -Path $FilePath) -replace "{rolename}", "${RoleName}" | Set-Content -Path $FilePath -NoNewline
     }
-}
+}5
 # Make linux file endings
 foreach ($FilePath in $SQL_FILES) {
     (Get-Content -Raw -Path $FilePath) -replace "`r`n", "`n" | Set-Content -Path $FilePath -NoNewline
