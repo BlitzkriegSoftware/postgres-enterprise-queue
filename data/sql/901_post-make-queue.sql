@@ -118,7 +118,7 @@ BEGIN
             test_bad := test_bad + 1;
             test_result := 1;
             RAISE NOTICE 'Audit Count is Off for %', msg_id;
-        END IF
+        END IF;
 
     end loop;
 
