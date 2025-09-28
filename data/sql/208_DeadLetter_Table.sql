@@ -1,0 +1,1 @@
+-- Table: {schema}.dead_letter

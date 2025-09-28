@@ -1,0 +1,1 @@
+-- Table: {schema}.message_queue

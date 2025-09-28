@@ -22,7 +22,7 @@ Param (
 Import-Module Microsoft.PowerShell.Utility
 
 # Constantts
-[int]$ORDER_INDEX_MIN = 200;
+[int]$ORDER_INDEX_MIN = 110;
 
 # Variables
 [int]$exitCode = 0;
@@ -91,9 +91,16 @@ foreach ($FilePath in $SQL_FILES) {
     [string]$filename = [System.IO.Path]::GetFileName($FilePath)
     [int]$oi = Get-OrderIndex -ScriptName $filename;
     if ($oi -ge $ORDER_INDEX_MIN) {
-        Set-PSDebug -Trace 2
-        . $pbin -f $FilePath $ConnectionString
-        Set-PSDebug -Off
+        try {
+            Set-PSDebug -Trace 2   
+            . $pbin -f $FilePath $ConnectionString
+        }
+        catch {
+            Write-Output "Error: $_"
+        } 
+        finally {
+            Set-PSDebug -Off
+        }
     }
 }
 

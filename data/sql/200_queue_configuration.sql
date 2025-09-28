@@ -1,3 +1,5 @@
+-- Table: {schema}.queue_configuration
+
 CREATE TABLE {schema}.queue_configuration
 (
     setting_name character varying(128),
