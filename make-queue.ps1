@@ -92,6 +92,7 @@ foreach ($FilePath in $SQL_FILES) {
     [int]$oi = Get-OrderIndex -ScriptName $filename;
     if ($oi -ge $ORDER_INDEX_MIN) {
         try {
+            Write-Output "Executing: ${filename}"
             Set-PSDebug -Trace 2   
             . $pbin -f $FilePath $ConnectionString
         }
