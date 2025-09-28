@@ -849,7 +849,7 @@ default_text_search_config = 'pg_catalog.english'
 #------------------------------------------------------------------------------
 
 # logging
-log_destination = 'stderr, jsonlog'
+log_destination = 'stderr'
 logging_collector = on	
 log_directory = '/var/log/postgresql'
 log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'

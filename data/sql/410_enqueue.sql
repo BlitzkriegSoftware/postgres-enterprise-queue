@@ -10,6 +10,7 @@ AS $BODY$
 
 DECLARE
 	ts TIMESTAMP := CURRENT_TIMESTAMP;
+	xid8value xid8;
 	
 BEGIN
 
@@ -39,7 +40,12 @@ BEGIN
 			message_json
 		);
 
-	COMMIT;
+	select pg_current_xact_id_if_assigned()
+	into xid8value;
+
+	if(xid8value is not null) then
+		COMMIT;
+	end if;
 END;
 $BODY$;
 
