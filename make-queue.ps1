@@ -10,11 +10,9 @@
 
 Param (
     # Connection String for Postgres
-    [Parameter(Mandatory)]
-    [string]$ConnectionString,
+    [string]$ConnectionString = "postgresql://postgres:password123-@localhost:5432/postgres",
     # Schema name to create queue in
-    [Parameter(Mandatory)]
-    [string]$SchemaName,
+    [string]$SchemaName = "test01",
     # (optional) Role Name
     [string]$RoleName = ''
 )
