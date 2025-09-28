@@ -8,7 +8,7 @@ CREATE TABLE {schema}.message_history
     history_on timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     created_by character varying(128) DEFAULT 'system',
     message json NOT NULL DEFAULT '{}',
-    reason_why text NOT NULL DEFAULT 'expired',
+    reason_why text NOT NULL DEFAULT 'completed',
     PRIMARY KEY (message_id)
 )
 
