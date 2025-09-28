@@ -4,7 +4,7 @@
 DROP PROCEDURE IF EXISTS {schema}.reset_queue();
 
 CREATE OR REPLACE PROCEDURE {schema}.reset_queue()
-LANGUAGE 'sql'
+LANGUAGE 'plpgsql'
 AS $BODY$
 
 BEGIN;
