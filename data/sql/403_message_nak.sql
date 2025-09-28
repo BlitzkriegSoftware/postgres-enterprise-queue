@@ -7,7 +7,8 @@ DECLARE
 	numberofretries integer;
 	delay integer;
 	ts timestamp;
-	
+	updated_rows integer := 0;
+
 BEGIN
 	select COALESCE(retries,0)
 	into numberofretries
@@ -30,7 +31,18 @@ BEGIN
 		message_state_id = 1,
 		available_on = ts + make_interval( 0, 0, 0, 0, 0, 0, delay),
 		lease_expires = null
-	where message_id = message_id;
+	WHERE 
+		(
+			(message_id = message_id) and
+			(leased_by = ack_by) and
+			(lease_expires <= CURRENT_TIMESTAMP)
+		);
+	GET DIAGNOSTICS updated_rows = ROW_COUNT;
+    RETURN updated_rows;
+
+	if(updated_rows < 1) then
+		RAISE EXCEPTION 'Client did not own impacted queue item: %', message_id
+	end if;
 
 	COMMIT;
 END;

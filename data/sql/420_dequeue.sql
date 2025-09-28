@@ -32,7 +32,12 @@ BEGIN
     WITH cte AS (
         SELECT message_id, lease_expires, message_json
         FROM {schema}.message_queue
-        WHERE (message_state_id = 1) OR (message_state_id in (2,4,5) and (lease_expires < CURRENT_TIMESTAMP))
+        WHERE 
+            (available_on >= CURRENT_TIMESTAMP) and 
+            (
+                (message_state_id = 1) OR 
+                ((message_state_id in (2,4,5)) and (lease_expires < CURRENT_TIMESTAMP))
+            )
         ORDER BY available_on
         LIMIT 1
         FOR UPDATE SKIP LOCKED

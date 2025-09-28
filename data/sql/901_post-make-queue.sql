@@ -16,6 +16,8 @@ DECLARE
     lease_duration INTEGER DEFAULT 30;
     backoff_jitter_min INTEGER DEFAULT 1;
     backoff_jitter_max INTEGER DEFAULT 99;
+    msg_json json DEFAULT '{}';
+    client_id varchar(128) = 'client01';
 
 BEGIN
     call {schema}.reset_queue();
@@ -29,21 +31,26 @@ BEGIN
         SELECT floor(random() * (backoff_jitter_max - backoff_jitter_min + 1) + backoff_jitter_min)::int
 	    into die_roll;
 
-        if( die_roll > 80 ) then
-            message_state_id := 2;
-            retries := 1;
-            delay_seconds := die_roll * 3;
-            available_on := CURRENT_TIMESTAMP + make_interval( 0, 0, 0, 0, 0, 0, delay_seconds)
-            lease_expires := available_on +make_interval( 0, 0, 0, 0, 0, 0, lease_duration)
+        if (die_roll < 20 ) then
+            call {schema}.enqueue(msg_json);
         else 
-            message_state_id := 1;
-            retries := 0;
-            available_on := CURRENT_TIMESTAMP;
-            lease_expires := null;
-        end if;
+            if( die_roll > 80 ) then
+                message_state_id := 2;
+                retries := 1;
+                delay_seconds := die_roll * 3;
+                available_on := CURRENT_TIMESTAMP + make_interval( 0, 0, 0, 0, 0, 0, delay_seconds)
+                lease_expires := available_on +make_interval( 0, 0, 0, 0, 0, 0, lease_duration)
+            else 
+                message_state_id := 1;
+                retries := 0;
+                available_on := CURRENT_TIMESTAMP;
+                lease_expires := null;
+            end if;
 
-        INSERT INTO test01.message_queue(message_state_id, retries, available_on, lease_expires)
-	    VALUES (message_state_id, retries, available_on, lease_expires);
+            INSERT INTO test01.message_queue(message_state_id, retries, available_on, lease_expires)
+            VALUES (message_state_id, retries, available_on, lease_expires);
+
+        end if;
 
     end loop;
 

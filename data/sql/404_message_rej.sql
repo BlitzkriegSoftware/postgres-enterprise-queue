@@ -9,15 +9,28 @@ CREATE OR REPLACE PROCEDURE {schema}.message_rej(
 LANGUAGE 'sql'
 AS $BODY$
 
+DELCARE 
+	inserted_rows integer := 0;
 BEGIN;
 
 	INSERT INTO test01.dead_letter(
 		message_id, message_state_id, created_on, dead_on, created_by, message_json, reason_why)
 	SELECT message_id, 7, created_on, CURRENT_TIMESTAMP, rej_by, message_json, reason_why
 		FROM {schema}.message_queue 
-		WHERE message_id = message_id;	
+		WHERE 
+		(
+			(message_id = message_id) and
+			(leased_by = rej_by) and
+			(lease_expires <= CURRENT_TIMESTAMP)
+		);
+	GET DIAGNOSTICS inserted_rows = ROW_COUNT;
+    RETURN inserted_rows;
 	
-	DELETE FROM {schema}.message_queue where message_id = message_id;
+	if(inserted_rows = 1) then
+		DELETE FROM {schema}.message_queue where message_id = message_id;
+	else
+		 RAISE EXCEPTION 'Client did not own impacted queue item: %', message_id
+	end if;
 
 	COMMIT;
 
