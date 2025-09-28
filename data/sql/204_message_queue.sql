@@ -9,7 +9,7 @@ CREATE TABLE {schema}.message_queue
     lease_expires timestamp with time zone DEFAULT NULL,
     created_on timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     created_by character varying(128) DEFAULT 'system',
-    message json NOT NULL DEFAULT '{}',
+    message_json json NOT NULL DEFAULT '{}',
     PRIMARY KEY (message_id)
 )
 

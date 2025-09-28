@@ -7,7 +7,7 @@ CREATE TABLE {schema}.dead_letter
     created_on timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     dead_on timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     created_by character varying(128) DEFAULT 'system',
-    message json NOT NULL DEFAULT '{}',
+    message_json json NOT NULL DEFAULT '{}',
     reason_why text NOT NULL DEFAULT 'expired',
     PRIMARY KEY (message_id)
 )
