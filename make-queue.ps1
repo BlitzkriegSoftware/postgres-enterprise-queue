@@ -93,14 +93,14 @@ foreach ($FilePath in $SQL_FILES) {
     if ($oi -ge $ORDER_INDEX_MIN) {
         try {
             Write-Output "Executing: ${filename}"
-            Set-PSDebug -Trace 2   
+            # Set-PSDebug -Trace 2   
             . $pbin -f $FilePath $ConnectionString
         }
         catch {
             Write-Output "Error: $_"
         } 
         finally {
-            Set-PSDebug -Off
+            # Set-PSDebug -Off
         }
     }
 }
