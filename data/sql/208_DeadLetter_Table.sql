@@ -1,1 +1,21 @@
 -- Table: {schema}.dead_letter
+
+CREATE TABLE {schema}.dead_letter
+(
+    message_id uuid DEFAULT uuid_generate_v4(),
+    message_state_id integer NOT NULL DEFAULT 1,
+    retries integer NOT NULL DEFAULT 0,
+    available_on timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    lease_expires timestamp with time zone DEFAULT NULL,
+    created_on timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    dead_on timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    created_by character varying(128) DEFAULT 'system',
+    message json NOT NULL DEFAULT '{}',
+    reason_why text NOT NULL DEFAULT 'expired',
+    PRIMARY KEY (message_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS {schema}.dead_letter
+    OWNER to postgres;
