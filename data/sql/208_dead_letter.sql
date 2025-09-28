@@ -4,9 +4,6 @@ CREATE TABLE {schema}.dead_letter
 (
     message_id uuid DEFAULT uuid_generate_v4(),
     message_state_id integer NOT NULL DEFAULT 1,
-    retries integer NOT NULL DEFAULT 0,
-    available_on timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    lease_expires timestamp with time zone DEFAULT NULL,
     created_on timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     dead_on timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     created_by character varying(128) DEFAULT 'system',
