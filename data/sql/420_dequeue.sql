@@ -1,3 +1,4 @@
+-- {schema}.dequeue one message
 CREATE OR REPLACE FUNCTION {schema}.dequeue(
 		leased_by varchar(128),
 	    lease_seconds integer = -1
