@@ -87,16 +87,13 @@ foreach ($line in $PGPASS_LINES) {
 # Windows to linux file ending fixs
 $FILES_TO_PATCH = @(
 	"${PGPASS_FILE}",
-	".\data\postgresql.conf.cron",
-	".\data\configure_pg.sh",
-	".\data\pg_cron_add.sh",
-	".\data\pg_script_run.sh"
+	".\data\postgresql.conf.cron"
 )
 
 $SQL_FILES = Get-ChildItem -Path "${dbpath}\*.sql" -File -Recurse
+$SCRIPT_FILES = Get-ChildItem -Path "${dbpath}\*.sh" -File -Recurse
 
-$FILES_TO_PATCH = $FILES_TO_PATCH + $SQL_FILES;
-
+$FILES_TO_PATCH = $FILES_TO_PATCH + $SQL_FILES + $SCRIPT_FILES;
 foreach ($FilePath in $FILES_TO_PATCH) {
 	(Get-Content -Raw -Path $FilePath) -replace "`r`n", "`n" | Set-Content -Path $FilePath -NoNewline
 }
