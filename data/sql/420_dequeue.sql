@@ -56,7 +56,7 @@ BEGIN
         msg_json := '{}';
         call {schema}.add_audit(msg_id, 91, client_id, 'no items to dequeue');
     else
-        call {schema}.add_audit(msg_id, 1, client_id, 'dequeued');
+        call {schema}.add_audit(msg_id, 2, client_id, 'dequeued');
     end if;
 
 	return ROW(msg_id, expires, msg_json)::{schema}.queue_item;

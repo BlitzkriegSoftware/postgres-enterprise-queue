@@ -40,6 +40,8 @@ BEGIN
 			message_json
 		);
 
+	call {schema}.add_audit(msg_id, 1, created_by, 'enqueued');
+
 	select pg_current_xact_id_if_assigned()
 	into xid8value;
 
