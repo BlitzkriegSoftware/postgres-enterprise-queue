@@ -18,7 +18,7 @@ BEGIN
 		message_id, message_state_id, audit_by, reason_why)
 		VALUES (message_id, message_state_id, audit_by, reason_why);
 
-	COMMIT;
+	-- COMMIT;
 END;
 $BODY$;
 

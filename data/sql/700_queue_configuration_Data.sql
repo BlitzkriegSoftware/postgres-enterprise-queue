@@ -18,7 +18,11 @@ INSERT INTO {schema}.queue_configuration(
 	
 INSERT INTO {schema}.queue_configuration(
 	setting_name, setting_value, unit, casted_as, notes)
-	VALUES ('history_retention', '181', 'days', 'number',  'this should be adjusted for your orgs data retention policy. Removal from history is a hard delete, but history can be recovered from backups');
+	VALUES ('history_retention', '181', 'days', 'number',  'this should be adjusted for your orgs data retention policy.');
+	
+INSERT INTO {schema}.queue_configuration(
+	setting_name, setting_value, unit, casted_as, notes)
+	VALUES ('audit_retention', '10', 'days', 'number',  'this should be adjusted for your orgs data retention policy.');
 
 INSERT INTO {schema}.queue_configuration(
 	setting_name, setting_value, unit, casted_as, notes)
@@ -51,3 +55,7 @@ INSERT INTO {schema}.queue_configuration(
 INSERT INTO {schema}.queue_configuration(
 	setting_name, setting_value, unit, casted_as, notes)
 	VALUES ('cron_schedule_retention_history', '8 1 * * 6', 'cron', 'string',  'Schedule to run history cleanup procedure on,  1:08am Saturday');
+
+INSERT INTO {schema}.queue_configuration(
+	setting_name, setting_value, unit, casted_as, notes)
+	VALUES ('cron_schedule_retention_audit_log', '0 3 * * *', 'cron', 'string',  'Schedule to run the audit log cleanup procedure on, 3am Daily');

@@ -25,6 +25,7 @@ BEGIN
         into lease_duration
         from {schema}.queue_configuration 
         where setting_name = 'lease_duration';
+        RAISE NOTICE 'invalid lease duration %, replaceing with system default: %', lease_seconds, lease_duration;
     end if;
 
     expires := ts + make_interval( 0, 0, 0, 0, 0, 0, lease_duration);
@@ -33,21 +34,30 @@ BEGIN
         SELECT message_id, lease_expires, message_json
         FROM {schema}.message_queue
         WHERE 
-            (available_on >= CURRENT_TIMESTAMP) and 
+            (available_on <= CURRENT_TIMESTAMP) and 
             (
                 (message_state_id = 1) OR 
-                ((message_state_id in (2,4,5)) and (lease_expires < CURRENT_TIMESTAMP))
+                ((message_state_id in (2,4,5)) and ((lease_duration is null) or (lease_expires < CURRENT_TIMESTAMP)))
             )
         ORDER BY available_on
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
     UPDATE {schema}.message_queue
-    SET message_state_id = 2, lease_expires = expires, leased_by = client_id
-    FROM cte
-    WHERE {schema}.message_queue.message_id = cte.message_id
-    RETURNING {schema}.message_queue.message_id, {schema}.message_queue.message_json
+        SET message_state_id = 2, lease_expires = expires, leased_by = client_id
+        FROM cte
+        WHERE {schema}.message_queue.message_id = cte.message_id
+    RETURNING cte.message_id, cte.message_json
 	INTO msg_id, msg_json;
+
+    if(msg_id is null) then
+        msg_id := '00000000-0000-0000-0000-000000000000';
+        expires := null;
+        msg_json := '{}';
+        call {schema}.add_audit(msg_id, 91, client_id, 'no items to dequeue');
+    else
+        call {schema}.add_audit(msg_id, 1, client_id, 'dequeued');
+    end if;
 
 	return ROW(msg_id, expires, msg_json)::{schema}.queue_item;
 	

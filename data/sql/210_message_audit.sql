@@ -26,3 +26,6 @@ CREATE SEQUENCE {schema}.message_audit_message_id_seq
 ALTER SEQUENCE {schema}.message_audit_message_id_seq OWNER TO postgres;
 
 ALTER SEQUENCE {schema}.message_audit_message_id_seq OWNED BY {schema}.message_audit.audit_id;
+
+-- The actual autoincrement glue
+ALTER TABLE ONLY {schema}.message_audit ALTER COLUMN audit_id SET DEFAULT nextval('{schema}.message_audit_message_id_seq'::regclass);

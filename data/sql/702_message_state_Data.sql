@@ -30,4 +30,8 @@ INSERT INTO {schema}.message_state(
 
 INSERT INTO {schema}.message_state(
 	message_state_id, state_title, is_fsm)
+	VALUES (91, 'no queue items', false);
+
+INSERT INTO {schema}.message_state(
+	message_state_id, state_title, is_fsm)
 	VALUES (99, 'error', false);
