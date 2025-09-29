@@ -7,7 +7,7 @@ CREATE OR REPLACE PROCEDURE {schema}.reset_queue()
 LANGUAGE 'plpgsql'
 AS $BODY$
 
-BEGIN;
+BEGIN
 
     truncate table {schema}.dead_letter;
     truncate table {schema}.message_history;

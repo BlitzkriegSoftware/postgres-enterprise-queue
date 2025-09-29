@@ -3,6 +3,7 @@ RUN apt update -y
 RUN apt upgrade -y
 RUN apt install curl ca-certificates cron -y
 RUN apt install postgresql-16-cron -y
+RUN apt install postgresql-16-pldebugger -y
 # .pgpass
 RUN mkdir -p /var/lib/postgresql/data
 COPY ./data/.pgpass /var/lib/postgresql/data/.pgpass

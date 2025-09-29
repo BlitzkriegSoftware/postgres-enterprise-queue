@@ -6,13 +6,13 @@ LANGUAGE 'plpgsql'
 AS $BODY$
 
 DECLARE
- audit_count INTEGER DEFAULT 0;
+    audit_count INTEGER DEFAULT 0;
     audit_count_post INTEGER DEFAULT 0;
     available_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
     backoff_jitter_max INTEGER DEFAULT 99;
     backoff_jitter_min INTEGER DEFAULT 1;
     client_id varchar(128) = 'client01';
-    count INTEGER DEFAULT 0;
+    loop_count INTEGER DEFAULT 0;
     delay_seconds INTEGER DEFAULT 0;
     die_roll INTEGER DEFAULT 0;
     lease_duration INTEGER DEFAULT 30;
@@ -32,10 +32,10 @@ BEGIN
 
     --
     -- Create some test messages
-    count := 0;
+    loop_count := 0;
     loop
-        exit when count >= max_recs;
-        count := count + 1;
+        exit when loop_count >= max_recs;
+        loop_count := loop_count + 1;
 
         SELECT floor(random() * (backoff_jitter_max - backoff_jitter_min + 1) + backoff_jitter_min)::int
 	    into die_roll;
@@ -68,16 +68,16 @@ BEGIN
     into audit_count_post
     from {schema}.message_audit;
 
-    IF audit_count_post <= count THEN
+    IF audit_count_post <= loop_count THEN
         test_bad := test_bad + 1;
-        RAISE NOTICE 'Post create messages counts are odd. Expected: %, Actual: %', count, audit_count_post;
+        RAISE NOTICE 'Post create messages counts are odd. Expected: %, Actual: %', loop_count, audit_count_post;
     END IF;
 
     -- do some tests
-    count := 0;
+    loop_count := 0;
     loop
-        exit when count >= test_iteration_max;
-        count := count + 1;
+        exit when loop_count >= test_iteration_max;
+        loop_count := loop_count + 1;
 
         select count(*)
         into audit_count
