@@ -47,11 +47,11 @@ BEGIN
         SET message_state_id = 2, lease_expires = expires, leased_by = client_id
         FROM cte
         WHERE {schema}.message_queue.message_id = cte.message_id
-    RETURNING cte.message_id, cte.message_json
+    RETURNING cast(cte.message_id as uuid) as message_id, cte.message_json
 	INTO msg_id, msg_json;
 
     if(msg_id is null) then
-        msg_id := '00000000-0000-0000-0000-000000000000';
+        msg_id := CAST('00000000-0000-0000-0000-000000000000' as uuid);
         expires := null;
         msg_json := '{}';
         call {schema}.add_audit(msg_id, 91, client_id, 'no items to dequeue');
@@ -59,7 +59,7 @@ BEGIN
         call {schema}.add_audit(msg_id, 2, client_id, 'dequeued');
     end if;
 
-	select msg_id, expires, msg_json;
+	RETURN QUERY SELECT msg_id, expires, msg_json;
 	
  END;
  $$;
