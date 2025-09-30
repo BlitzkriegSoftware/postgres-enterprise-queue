@@ -5,7 +5,7 @@ DROP FUNCTION IF EXISTS {schema}.dequeue(character varying, integer);
 CREATE OR REPLACE FUNCTION {schema}.dequeue(
 	client_id varchar(128),
 	lease_seconds integer DEFAULT '-1'::integer)
-    RETURNS {schema}.queue_item
+    RETURNS  TABLE(msg_id uuid, expires TIMESTAMP, msg_json json)
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE PARALLEL UNSAFE
@@ -59,7 +59,7 @@ BEGIN
         call {schema}.add_audit(msg_id, 2, client_id, 'dequeued');
     end if;
 
-	return ROW(msg_id, expires, msg_json)::{schema}.queue_item;
+	select msg_id, expires, msg_json;
 	
  END;
  $$;
