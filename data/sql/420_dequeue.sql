@@ -59,7 +59,7 @@ BEGIN
         call {schema}.add_audit(msg_id, 2, client_id, 'dequeued');
     end if;
 
-	RETURN QUERY SELECT msg_id, expires, msg_json;
+	RETURN QUERY SELECT CAST(msg_id as uuid) as msg_id, expires, msg_json;
 	
  END;
  $$;
