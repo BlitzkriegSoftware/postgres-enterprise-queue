@@ -4,8 +4,12 @@ DROP FUNCTION IF EXISTS {schema}.dequeue(character varying, integer);
 
 CREATE OR REPLACE FUNCTION {schema}.dequeue(
 	client_id varchar(128),
-	lease_seconds integer DEFAULT '-1'::integer)
-    RETURNS  TABLE(msg_id uuid, expires TIMESTAMP, msg_json json)
+	lease_seconds integer DEFAULT '-1'::integer,
+    OUT msg_id uuid,
+    OUT expires TIMESTAMP,
+    OUT msg_json json
+    )
+    RETURNS  record
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE PARALLEL UNSAFE
@@ -16,16 +20,10 @@ DECLARE
     lease_duration_min integer := 10;
     lease_duration_default integer := 30;
     ts TIMESTAMP := CURRENT_TIMESTAMP;
-    expires TIMESTAMP;
-	msg_id uuid;
-	msg_json json;
+    -- expires TIMESTAMP;
+	-- msg_id uuid;
+	-- msg_json json;
 BEGIN
-
-    CREATE TEMPORARY TABLE temp_results (
-        id uuid,
-        exp TIMESTAMP,
-        jsn json
-    ) ON COMMIT DROP;
 
     if(lease_duration < lease_duration_min) then
         select COALESCE(CAST(setting_value AS INTEGER), lease_duration_default)
@@ -66,9 +64,7 @@ BEGIN
         call {schema}.add_audit(msg_id, 2, client_id, 'dequeued');
     end if;
 
-	insert into temp_results (id, exp, jsn) values (msg_id, expires, msg_json);
-
-    return QUERY SELECT id, exp, jsn from temp_results;
+    return; -- (select msg_id, expires, msg_json);
 	
  END;
  $$;
