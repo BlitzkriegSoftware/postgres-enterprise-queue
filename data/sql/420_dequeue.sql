@@ -20,6 +20,13 @@ DECLARE
 	msg_id uuid;
 	msg_json json;
 BEGIN
+
+    CREATE TEMPORARY TABLE temp_results (
+        id uuid,
+        exp TIMESTAMP,
+        jsn json
+    ) ON COMMIT DROP;
+
     if(lease_duration < lease_duration_min) then
         select COALESCE(CAST(setting_value AS INTEGER), lease_duration_default)
         into lease_duration
@@ -28,7 +35,7 @@ BEGIN
         RAISE NOTICE 'invalid lease duration %, replaceing with system default: %', lease_seconds, lease_duration;
     end if;
 
-    expires := ts + make_interval( 0, 0, 0, 0, 0, 0, lease_duration);
+    expires := ts + make_interval(0, 0, 0, 0, 0, 0, lease_duration);
 
     WITH cte AS (
         SELECT message_id, lease_expires, message_json
@@ -47,10 +54,10 @@ BEGIN
         SET message_state_id = 2, lease_expires = expires, leased_by = client_id
         FROM cte
         WHERE {schema}.message_queue.message_id = cte.message_id
-    RETURNING cast(cte.message_id as uuid) as message_id, cte.message_json
+    RETURNING cte.message_id, cte.message_json
 	INTO msg_id, msg_json;
 
-    if(msg_id is null) then
+    if((msg_id is null) or (length(cast(msg_id as character varying)) <= 0)) then
         msg_id := CAST('00000000-0000-0000-0000-000000000000' as uuid);
         expires := null;
         msg_json := '{}';
@@ -59,7 +66,9 @@ BEGIN
         call {schema}.add_audit(msg_id, 2, client_id, 'dequeued');
     end if;
 
-	RETURN QUERY SELECT CAST(msg_id as uuid) as msg_id, expires, msg_json;
+	insert into temp_results (id, exp, jsn) values (msg_id, expires, msg_json);
+
+    return QUERY SELECT id, exp, jsn from temp_results;
 	
  END;
  $$;
