@@ -6,7 +6,7 @@ LANGUAGE 'plpgsql'
 AS $BODY$
 
 DECLARE
-audit_count INTEGER DEFAULT 0;
+    audit_count INTEGER DEFAULT 0;
     audit_count_post INTEGER DEFAULT 0;
     available_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
     backoff_jitter_max INTEGER DEFAULT 99;
@@ -108,10 +108,10 @@ BEGIN
         SELECT random_value into die_roll from {schema}.random_between(1,100);
         IF die_roll < 10 THEN
             call {schema}.message_rej(msg_id, client_id, 'bad format');
-        ELSIF die_roll < 70 THEN
-            call {schema}.message_ack(msg_id,client_id, 'ack');
-        ELSE
+        ELSIF die_roll > 80 THEN
             call {schema}.message_nak(msg_id,client_id, 'uow fail');
+        ELSE
+            call {schema}.message_ack(msg_id,client_id, 'ack');
         END IF;
 
         select count(*)
