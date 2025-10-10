@@ -1,7 +1,7 @@
 DROP PROCEDURE IF EXISTS {schema}.cron_unlock();
 
 CREATE OR REPLACE PROCEDURE {schema}.cron_unlock(
-    IN lease_duration_in DEFAULT 0
+    IN lease_duration_in integer DEFAULT 0
 )
 LANGUAGE plpgsql
 AS $BODY$
@@ -16,6 +16,7 @@ DECLARE
     state_id integer := 88;
     who_by varchar(128) := 'system';
     why_so varchar(128) := 'retries exeeded';
+    dead_cursor CURSOR FOR select message_id from {schema}.message_queue where retries > max_retries;
     
 BEGIN
     select COALESCE(CAST(max_retries AS INTEGER), max_retries_default)
@@ -31,14 +32,14 @@ BEGIN
             from {schema}.queue_configuration 
             where setting_name = 'lease_duration';
 
-    end if
+    end if;
 
     -- buffer the least duration
     lease_duration := lease_duration * 2;
     ts := CURRENT_TIMESTAMP - make_interval( 0, 0, 0, 0, 0, 0, lease_duration );
 
     update 
-        message_queue  
+        {schema}.message_queue  
     set
         message_state_id = 1,
         retries = retries + 1,
@@ -50,8 +51,7 @@ BEGIN
         lease_expires < ts;
 
     -- move really dead one to dead letter
-    DECLARE dead_cursor CURSOR FOR 
-        select message_id from {schema}.message_queue where retries > max_retries;
+   
 
     OPEN dead_cursor;
 
