@@ -13,6 +13,7 @@ DECLARE
 	inserted_rows integer := 0;
 	
 BEGIN
+	-- START TRANSACTION;
 
 	INSERT INTO {schema}.dead_letter(
 		message_id, message_state_id, created_on, dead_on, created_by, message_json, reason_why)
@@ -22,7 +23,7 @@ BEGIN
 		(
 			(message_id = msg_id) and
 			(leased_by = rej_by) and
-			(lease_expires <= CURRENT_TIMESTAMP)
+			(lease_expires >= CURRENT_TIMESTAMP)
 		);
 		
 	GET DIAGNOSTICS inserted_rows = ROW_COUNT;
@@ -31,11 +32,11 @@ BEGIN
 		DELETE FROM {schema}.message_queue where message_id = msg_id;
 		call {schema}.add_audit(msg_id, 7, rej_by, reason_why);
 	else
-		call {schema}.add_audit(msg_id, 99, rej_by, 'Client did not own impacted queue item');
-		RAISE EXCEPTION 'Client did not own impacted queue item: %', msg_id;
+		call {schema}.add_audit(msg_id, 99, rej_by, 'Client did not own impacted queue item or lease expired');
+		RAISE EXCEPTION 'Client did not own impacted queue item or lease expired: %', msg_id;
 	end if;
 
-	COMMIT;
+	-- COMMIT;
 
 END;
 $BODY$;

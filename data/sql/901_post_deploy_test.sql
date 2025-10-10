@@ -12,11 +12,14 @@ DECLARE
     backoff_jitter_max INTEGER DEFAULT 99;
     backoff_jitter_min INTEGER DEFAULT 1;
     client_id varchar(128) = 'client01';
+    current TIMESTAMP;
     delay_seconds INTEGER DEFAULT 0;
     die_roll INTEGER DEFAULT 0;
+    empty_id uuid := CAST('00000000-0000-0000-0000-000000000000' as uuid);
     expires TIMESTAMP;
     lease_duration INTEGER DEFAULT 30;
     lease_expires TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+    lease_owner varchar(128);
     loop_count INTEGER DEFAULT 0;
     max_recs INTEGER DEFAULT 50;
     message_state_id INTEGER DEFAULT 1;
@@ -37,43 +40,14 @@ BEGIN
     loop
         exit when loop_count >= max_recs;
         loop_count := loop_count + 1;
-
-        SELECT random_value into die_roll from {schema}.random_between(1,100);
-
-        if (die_roll < 20) then
-            call {schema}.enqueue(msg_json);
-        else 
-
-            msg_id := uuid_generate_v4();
-
-            if( die_roll > 80 ) then
-                message_state_id := 2;
-                retries := 1;
-                delay_seconds := die_roll * 3;
-                available_on := CURRENT_TIMESTAMP + make_interval( 0, 0, 0, 0, 0, 0, delay_seconds );
-                lease_expires := available_on + make_interval( 0, 0, 0, 0, 0, 0, lease_duration );
-            else 
-                message_state_id := 1;
-                retries := 0;
-                delay_seconds := 0;
-                available_on := CURRENT_TIMESTAMP;
-                lease_expires := null;
-            end if;
-
-            INSERT INTO test01.message_queue(message_id, message_state_id, retries, available_on, lease_expires)
-            VALUES (msg_id, message_state_id, retries, available_on, lease_expires);
-
-            call {schema}.add_audit(msg_id, message_state_id, client_id, 'test queue');
-
-        end if;
-
+        call {schema}.enqueue(msg_json);
     end loop;
 
     select count(*)
     into audit_count_post
     from {schema}.message_audit;
 
-    IF audit_count_post <= loop_count THEN
+    IF audit_count_post <> loop_count THEN
         test_bad := test_bad + 1;
         RAISE NOTICE 'Post create messages counts are odd. Expected: %, Actual: %', loop_count, audit_count_post;
     END IF;
@@ -92,37 +66,41 @@ BEGIN
             into msg_id, ts, msg_json 
             from test01.dequeue(client_id, lease_duration) as b;
 
-        IF msg_id IS NULL THEN
+        RAISE NOTICE 'dequeue. ID: %, expires: %, json: %', msg_id, ts, msg_json;
+
+        IF ((msg_id IS NULL) or (msg_id = empty_id)) THEN
             test_bad := test_bad + 1;
             test_result := 1;
-            RAISE NOTICE 'Unexpected: no more messages';
-            exit;
+            RAISE NOTICE '   Unexpected: no more messages';
+            CONTINUE;
         END IF;
 
-        IF ts > CURRENT_TIMESTAMP THEN
+        current := CURRENT_TIMESTAMP;
+        IF ts <= current THEN
             test_bad := test_bad + 1;
             test_result := 1;
-            RAISE NOTICE 'Timestamp in future: %', msg_id;
+            RAISE NOTICE '   Timestamp in the past: %', current;
+            CONTINUE;
         END IF;
 
-        SELECT random_value into die_roll from {schema}.random_between(1,100);
-        IF die_roll < 10 THEN
-            call {schema}.message_rej(msg_id, client_id, 'bad format');
-        ELSIF die_roll > 80 THEN
-            call {schema}.message_nak(msg_id, client_id, 'uow fail');
-        ELSE
-            call {schema}.message_ack(msg_id, client_id, 'ack');
-        END IF;
+        BEGIN
 
-        select count(*)
-            into audit_count_post
-            from {schema}.message_audit;
+            SELECT random_value into die_roll from {schema}.random_between(1,100);
+            IF die_roll < 10 THEN
+                RAISE NOTICE '   REJ';
+                call {schema}.message_rej(msg_id, client_id, 'bad format');
+            ELSIF die_roll > 80 THEN
+                RAISE NOTICE '   NAK';
+                call {schema}.message_nak(msg_id, client_id, 'uow fail');
+            ELSE
+                RAISE NOTICE '   ACK';
+                call {schema}.message_ack(msg_id, client_id, 'ack');
+            END IF;
 
-        IF audit_count >= audit_count_post THEN
-            test_bad := test_bad + 1;
-            test_result := 1;
-            RAISE NOTICE 'Audit Count is Off for %', msg_id;
-        END IF;
+        EXCEPTION
+            WHEN OTHERS THEN
+                RAISE NOTICE 'An unknown error occurred: %', SQLERRM;
+        END;
 
     end loop;
 

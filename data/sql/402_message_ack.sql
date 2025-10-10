@@ -12,6 +12,7 @@ AS $BODY$
 DECLARE
 	inserted_rows integer := 0;
 BEGIN
+	-- START TRANSACTION;
 
 	INSERT INTO {schema}.message_history(
 		message_id, message_state_id, created_on, history_on, created_by, message_json, reason_why)
@@ -21,7 +22,7 @@ BEGIN
 		(
 			(message_id = msg_id) and
 			(leased_by = ack_by) and
-			(lease_expires <= CURRENT_TIMESTAMP)
+			(lease_expires >= CURRENT_TIMESTAMP)
 		);
 		
 	GET DIAGNOSTICS inserted_rows = ROW_COUNT;
@@ -30,11 +31,11 @@ BEGIN
 		DELETE FROM {schema}.message_queue where message_id = msg_id;
 		call {schema}.add_audit(msg_id, 3, ack_by, 'ACK');
 	ELSE
-		call {schema}.add_audit(msg_id, 99, ack_by, 'Client did not own impacted queue item');
-		RAISE EXCEPTION 'Client did not own impacted queue item: %', msg_id;
+		call {schema}.add_audit(msg_id, 99, ack_by, 'Client did not own impacted queue item or lease expired');
+		RAISE EXCEPTION 'Client did not own impacted queue item or lease expired: %', msg_id;
 	END IF;
 
-	COMMIT;
+	-- COMMIT;
 
 END;
 $BODY$;

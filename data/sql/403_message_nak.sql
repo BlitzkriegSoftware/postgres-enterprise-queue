@@ -14,6 +14,8 @@ DECLARE
 	updated_rows integer := 0;
 
 BEGIN
+	-- START TRANSACTION;
+
 	select COALESCE(retries,0)
 	into numberofretries
 	from {schema}.message_queue
@@ -38,19 +40,19 @@ BEGIN
 	WHERE 
 		(
 			(message_id = msg_id) and
-			(leased_by = ack_by) and
-			(lease_expires <= CURRENT_TIMESTAMP)
+			(leased_by = nak_by) and
+			(lease_expires >= CURRENT_TIMESTAMP)
 		);
 		
 	GET DIAGNOSTICS updated_rows = ROW_COUNT;
 
 	if updated_rows < 1 then
-		call {schema}.add_audit(msg_id, 99, nak_by, 'Client did not own impacted queue item');
-		RAISE EXCEPTION 'Client did not own impacted queue item: %', msg_id;
+		call {schema}.add_audit(msg_id, 99, nak_by, 'Client did not own impacted queue item or lease expired');
+		RAISE EXCEPTION 'Client did not own impacted queue item or lease expired: %', msg_id;
 	ELSE
 		call {schema}.add_audit(msg_id, 1, nak_by, reason_why);
 	end if;
 
-	COMMIT;
+	-- COMMIT;
 END;
 $$;
