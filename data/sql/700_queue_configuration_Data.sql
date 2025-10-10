@@ -59,3 +59,7 @@ INSERT INTO {schema}.queue_configuration(
 INSERT INTO {schema}.queue_configuration(
 	setting_name, setting_value, unit, casted_as, notes)
 	VALUES ('cron_schedule_retention_audit_log', '0 3 * * *', 'cron', 'string',  'Schedule to run the audit log cleanup procedure on, 3am Daily');
+
+INSERT INTO {schema}.queue_configuration(
+	setting_name, setting_value, unit, casted_as, notes)
+	VALUES ('cron_vacuum', '45 4 * * *', 'cron', 'string',  'Vaccumm nightly');
