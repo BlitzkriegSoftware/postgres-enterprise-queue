@@ -1,8 +1,9 @@
 DROP PROCEDURE IF EXISTS {schema}.cron_unlock();
 
 CREATE OR REPLACE PROCEDURE {schema}.cron_unlock(
-    IN lease_duration_in integer := 0
+    IN lease_duration_in DEFAULT 0
 )
+LANGUAGE plpgsql
 AS $BODY$
 
 DECLARE
@@ -34,7 +35,6 @@ BEGIN
 
     -- buffer the least duration
     lease_duration := lease_duration * 2;
-
     ts := CURRENT_TIMESTAMP - make_interval( 0, 0, 0, 0, 0, 0, lease_duration );
 
     update 
