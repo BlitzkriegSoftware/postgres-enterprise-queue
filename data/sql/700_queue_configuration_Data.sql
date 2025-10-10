@@ -14,7 +14,7 @@ INSERT INTO {schema}.queue_configuration(
 
 INSERT INTO {schema}.queue_configuration(
 	setting_name, setting_value, unit, casted_as, notes)
-	VALUES ('dead_letter_retention', '30', 'days', 'number',  'messages are purged from dead letter after this many days. Remember messages can be requeued using the procedures');
+	VALUES ('dead_letter_retention', '91', 'days', 'number',  'messages are purged from dead letter after this many days. Remember messages can be requeued using the procedures');
 	
 INSERT INTO {schema}.queue_configuration(
 	setting_name, setting_value, unit, casted_as, notes)
@@ -22,7 +22,7 @@ INSERT INTO {schema}.queue_configuration(
 	
 INSERT INTO {schema}.queue_configuration(
 	setting_name, setting_value, unit, casted_as, notes)
-	VALUES ('audit_retention', '10', 'days', 'number',  'this should be adjusted for your orgs data retention policy.');
+	VALUES ('audit_retention', '31', 'days', 'number',  'this should be adjusted for your orgs data retention policy.');
 
 INSERT INTO {schema}.queue_configuration(
 	setting_name, setting_value, unit, casted_as, notes)
