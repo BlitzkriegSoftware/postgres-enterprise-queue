@@ -3,8 +3,8 @@
 DROP PROCEDURE IF EXISTS {schema}.add_audit(uuid, integer, character varying, text);
 
 CREATE OR REPLACE PROCEDURE {schema}.add_audit(
-	IN message_id uuid,
-	IN message_state_id integer,
+	IN msg_id uuid,
+	IN state_id integer,
 	IN audit_by character varying,
 	IN reason_why text)
 LANGUAGE 'plpgsql'
@@ -16,7 +16,7 @@ BEGIN
 
 	INSERT INTO {schema}.message_audit(
 		message_id, message_state_id, audit_by, reason_why)
-		VALUES (message_id, message_state_id, audit_by, reason_why);
+		VALUES (msg_id, state_id, audit_by, reason_why);
 
 	-- COMMIT;
 END;

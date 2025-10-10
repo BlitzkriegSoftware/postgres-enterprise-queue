@@ -30,6 +30,14 @@ INSERT INTO {schema}.message_state(
 
 INSERT INTO {schema}.message_state(
 	message_state_id, state_title, is_fsm)
+	VALUES (77, 'dead-letter-cron', false);
+
+INSERT INTO {schema}.message_state(
+	message_state_id, state_title, is_fsm)
+	VALUES (88, 'dead-letter-retries-exeeded', false);
+
+INSERT INTO {schema}.message_state(
+	message_state_id, state_title, is_fsm)
 	VALUES (91, 'no queue items', false);
 
 INSERT INTO {schema}.message_state(

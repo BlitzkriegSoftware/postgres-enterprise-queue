@@ -2,7 +2,7 @@ TRUNCATE TABLE {schema}.queue_configuration;
 
 INSERT INTO {schema}.queue_configuration(
 	setting_name, setting_value, unit, casted_as, notes)
-	VALUES ('item_delay', '0', 'seconds', 'number',  'delay making message available by this number of seconds, sometimes its useful to have a short initial delay. More often, a jitted value when queuing up batches of messages is useful. For scheduling messages in the future, use the parameters in the procedures');
+	VALUES ('item_delay', '0', 'seconds', 'number', 'delay making message available by this number of seconds, sometimes its useful to have a short initial delay. More often, a jitted value when queuing up batches of messages is useful. For scheduling messages in the future, use the parameters in the procedures');
 
 INSERT INTO {schema}.queue_configuration(
 	setting_name, setting_value, unit, casted_as, notes)
@@ -26,7 +26,7 @@ INSERT INTO {schema}.queue_configuration(
 
 INSERT INTO {schema}.queue_configuration(
 	setting_name, setting_value, unit, casted_as, notes)
-	VALUES ('max_retries', '5', 'count', 'number',  'A message can be processed no more than this many times. Backoff is exponential and jittered, see next settings. Carefully concider if the total maximum elapsed time to process a message and get around to successfully executing its associated unit of work is reasonable.');
+	VALUES ('max_retries', '7', 'count', 'number',  'A message can be processed no more than this many times. Backoff is exponential and jittered, see next settings. Carefully concider if the total maximum elapsed time to process a message and get around to successfully executing its associated unit of work is reasonable.');
 
 INSERT INTO {schema}.queue_configuration(
 	setting_name, setting_value, unit, casted_as, notes)
