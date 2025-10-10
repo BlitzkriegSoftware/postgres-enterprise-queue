@@ -42,14 +42,18 @@ BEGIN
         where setting_name = 'cron_schedule_retention_audit_log';
 
     -- do the PEQ scheduled tasks
-    SELECT cron.schedule('retention_queue', cron_schedule_retention_queue, 'CALL {schema}.cron_unlock(0)');
-    SELECT cron.schedule('retention_dead_letter', cron_schedule_retention_dead_letter, 'CALL {schema}.cron_dead_letter_retention(0)');
-    SELECT cron.schedule('retention_history', cron_schedule_retention_history, 'CALL {schema}.cron_history_clean(0)');
-    SELECT cron.schedule('retention_audit_log', cron_schedule_retention_audit_log, 'CALL {schema}.cron_audit_clean(0)');
+    PERFORM cron.schedule('retention_queue', cron_schedule_retention_queue, 'CALL {schema}.cron_unlock(0)');
+    PERFORM cron.schedule('retention_dead_letter', cron_schedule_retention_dead_letter, 'CALL {schema}.cron_dead_letter_retention(0)');
+    PERFORM cron.schedule('retention_history', cron_schedule_retention_history, 'CALL {schema}.cron_history_clean(0)');
+    PERFORM cron.schedule('retention_audit_log', cron_schedule_retention_audit_log, 'CALL {schema}.cron_audit_clean(0)');
 
     -- bonus, do a nightly vaccuum
-    SELECT cron.schedule('nightly-vacuum', cron_vacuum, 'VACUUM');
+    PERFORM cron.schedule('nightly-vacuum', cron_vacuum, 'VACUUM');
 
-    select * from cron.job_run_details order by start_time desc;
+    -- list of jobs
+    -- select jobid, jobname, schedule, command from cron.job;
+
+    -- job execution history
+    -- select * from cron.job_run_details order by start_time desc;
 
 END $$ LANGUAGE plpgsql;
