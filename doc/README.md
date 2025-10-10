@@ -2,7 +2,7 @@
 
 Please read: [Message Lifecycle](./MESSAGE_LIFECYCLE.md)
 
-## Generate an enterprise queue 
+## Generate an enterprise queue
 
 Here is how to generate an enterprise queue in the desired schema. One schema per enteprise queue is the design choice for this library.
 
@@ -24,22 +24,28 @@ Checklist
 - [ ] Decide on a unique schema name to host your queue artifacts, thus deleting the schema deletes the queue (and warning! the history)
 - [ ] Decide if you need a custom role, and if so, pick a unique name
 
-### Invocation
+## Make an enterprise queue
 
 ```powershell
-.\make-queue.ps1 -ConnectionString="${ConnectionString}" -SchemaName="${SchemaName}" [-RoleName="${RoleName}"]
+.\make-queue.ps1 `
+    -ConnectionString "postgresql://postgres:password123-@localhost:5432/postgres" `
+    -SchemaName "test01"
 ```
 
-* `-c` well formed Postgres connection string including database
-  - example: `postgresql://postgres:password123-@localhost/postgres`
-  - this is the working connection string for the docker database
+- `ConnectionString`: valid Postgres Connectiojn String (sample is the docker one)
+- `SchemaName`: (required) schema to put the queue into
+- `RoleName`: (unused, future)
 
-* `-s` unique schema name
-  - example: `peq_schema_01`
-  - having the prefix `peq_` or even `peq_schema_` is not a bad idea
+### Make-Queue: What does it do?
 
-* `-r` (optional) unique role name
-  - example: `peq_role_01`
-  - having the prefix `peq_` or even `peq_role_` is not a bad idea
+1. Takes the schema in `sql\`
+2. In each file replaces `{schema}` token with your schema name
+3. Copies transformed files into `temp\` folder
+4. Plays scripts in numeric order ascending at the postgres instance and database in the connection string
+5. Queue is ready for use
 
 This will create the objects in [schema](./SCHEMA.md) and the default [configuration](./CONFIG.md).
+
+## How to use your Queue
+
+See: [Use your Queue](./USE_QUEUE.md)

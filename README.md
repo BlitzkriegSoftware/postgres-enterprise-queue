@@ -2,6 +2,16 @@
 
 Postgres queue with leasing, cleanup, etc, leverages [pg_cron](https://github.com/citusdata/pg_cron)
 
+## Enterprise Queuing
+
+Here are the documents for Postgres Enterprise Queues (PEQ)
+
+- [Start Here](./doc/README.md)
+- [Message Lifecycle](./doc/MESSAGE_LIFECYCLE.md)
+- [Schema](./doc/SCHEMA.md)
+- [Adminstration](./doc/PEQ_ADMIN.md)
+- [Configuration](./doc/CONFIG.md)
+
 ## Start Postgres and install cron & pg_cron
 
 ```powershell
@@ -19,7 +29,7 @@ Postgres queue with leasing, cleanup, etc, leverages [pg_cron](https://github.co
 7. Finishes up
 8. Postgres w. plugins ready for use
 
-> Horrible work arounds, if you have a better way, create an issue, or put in a PR 
+> Horrible work arounds, if you have a better way, create an issue, or put in a PR
 > It works though.
 
 ## stop postgres
@@ -32,26 +42,6 @@ Postgres queue with leasing, cleanup, etc, leverages [pg_cron](https://github.co
 
 1. Stops image
 2. Does a tear down (you can customize to stop this, change start too.
-
-## Make an enterprise queue
-
-```powershell
-.\make-queue.ps1 `
-    -ConnectionString "postgresql://postgres:password123-@localhost:5432/postgres" `
-    -SchemaName "test01" 
-```
-
-* `ConnectionString`: valid Postgres Connectiojn String (sample is the docker one)
-* `SchemaName`: (required) schema to put the queue into 
-* `RoleName`: (unused, future)
-
-### What does it do?
-
-1. Takes the schema in `sql\` 
-2. In each file replaces `{schema}` token with your schema name
-3. Copies transformed files into `temp\` folder
-4. Plays scripts in numeric order ascending at the postgres instance and database in the connection string
-5. Queue is ready for use
 
 ## Leverages
 
@@ -66,13 +56,3 @@ select jobid, jobname, schedule, command from cron.job;
 -- job execution history
 select * from cron.job_run_details order by start_time desc;
 ```
-
-## Enterprise Queuing
-
-Here are the documents for Postgres Enterprise Queues (PEQ)
-
-- [Start Here](./doc/README.md)
-- [Message Lifecycle](./doc/MESSAGE_LIFECYCLE.md)
-- [Schema](./doc/SCHEMA.md)
-- [Adminstration](./doc/PEQ_ADMIN.md)
-- [Configuration](./doc/CONFIG.md)
