@@ -3,7 +3,7 @@
 DROP PROCEDURE IF EXISTS {schema}.message_rej(uuid, character varying, text);
 
 CREATE OR REPLACE PROCEDURE {schema}.message_rej(
-	IN message_id uuid,
+	IN msg_id uuid,
 	IN rej_by character varying DEFAULT 'system'::character varying,
 	IN reason_why text DEFAULT 'completed'::text)
 LANGUAGE plpgsql
@@ -20,7 +20,7 @@ BEGIN
 		FROM {schema}.message_queue 
 		WHERE 
 		(
-			(message_id = message_id) and
+			(message_id = msg_id) and
 			(leased_by = rej_by) and
 			(lease_expires <= CURRENT_TIMESTAMP)
 		);
@@ -28,11 +28,11 @@ BEGIN
 	GET DIAGNOSTICS inserted_rows = ROW_COUNT;
 	
 	if inserted_rows = 1 then
-		DELETE FROM {schema}.message_queue where message_id = message_id;
-		call {schema}.add_audit(message_id, 7, rej_by, reason_why);
+		DELETE FROM {schema}.message_queue where message_id = msg_id;
+		call {schema}.add_audit(msg_id, 7, rej_by, reason_why);
 	else
-		call {schema}.add_audit(message_id, 99, rej_by, 'Client did not own impacted queue item');
-		RAISE EXCEPTION 'Client did not own impacted queue item: %', message_id;
+		call {schema}.add_audit(msg_id, 99, rej_by, 'Client did not own impacted queue item');
+		RAISE EXCEPTION 'Client did not own impacted queue item: %', msg_id;
 	end if;
 
 	COMMIT;

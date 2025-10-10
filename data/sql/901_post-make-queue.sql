@@ -109,9 +109,9 @@ BEGIN
         IF die_roll < 10 THEN
             call {schema}.message_rej(msg_id, client_id, 'bad format');
         ELSIF die_roll > 80 THEN
-            call {schema}.message_nak(msg_id,client_id, 'uow fail');
+            call {schema}.message_nak(msg_id, client_id, 'uow fail');
         ELSE
-            call {schema}.message_ack(msg_id,client_id, 'ack');
+            call {schema}.message_ack(msg_id, client_id, 'ack');
         END IF;
 
         select count(*)

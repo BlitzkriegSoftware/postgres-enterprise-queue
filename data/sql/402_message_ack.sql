@@ -3,7 +3,7 @@
 DROP PROCEDURE IF EXISTS {schema}.message_ack(uuid, character varying, text);
 
 CREATE OR REPLACE PROCEDURE {schema}.message_ack(
-	IN message_id uuid,
+	IN msg_id uuid,
 	IN ack_by character varying DEFAULT 'system'::character varying,
 	IN reason_why text DEFAULT 'completed'::text)
 LANGUAGE plpgsql
@@ -19,7 +19,7 @@ BEGIN
 		FROM {schema}.message_queue 
 		WHERE 
 		(
-			(message_id = message_id) and
+			(message_id = msg_id) and
 			(leased_by = ack_by) and
 			(lease_expires <= CURRENT_TIMESTAMP)
 		);
@@ -27,11 +27,11 @@ BEGIN
 	GET DIAGNOSTICS inserted_rows = ROW_COUNT;
 	
 	IF inserted_rows > 0 THEN
-		DELETE FROM {schema}.message_queue where message_id = message_id;
-		call {schema}.add_audit(message_id, 3, ack_by, 'ACK');
+		DELETE FROM {schema}.message_queue where message_id = msg_id;
+		call {schema}.add_audit(msg_id, 3, ack_by, 'ACK');
 	ELSE
-		call {schema}.add_audit(message_id, 99, ack_by, 'Client did not own impacted queue item');
-		RAISE EXCEPTION 'Client did not own impacted queue item: %', message_id;
+		call {schema}.add_audit(msg_id, 99, ack_by, 'Client did not own impacted queue item');
+		RAISE EXCEPTION 'Client did not own impacted queue item: %', msg_id;
 	END IF;
 
 	COMMIT;

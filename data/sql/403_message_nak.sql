@@ -1,6 +1,6 @@
 -- Message NAK
 CREATE OR REPLACE PROCEDURE {schema}.message_nak(
-	IN message_id uuid,
+	IN msg_id uuid,
 	IN nak_by character varying DEFAULT 'system'::character varying,
 	IN reason_why text DEFAULT 'uow fail'::text
 )
@@ -22,7 +22,7 @@ BEGIN
 	select COALESCE(lease_expires, CURRENT_TIMESTAMP)
 	into ts
 	from {schema}.message_queue
-	where message_id = message_id;
+	where message_id = msg_id;
 
 	numberofretries := numberofretries + 1;
 
@@ -37,7 +37,7 @@ BEGIN
 		lease_expires = null
 	WHERE 
 		(
-			(message_id = message_id) and
+			(message_id = msg_id) and
 			(leased_by = ack_by) and
 			(lease_expires <= CURRENT_TIMESTAMP)
 		);
@@ -45,10 +45,10 @@ BEGIN
 	GET DIAGNOSTICS updated_rows = ROW_COUNT;
 
 	if updated_rows < 1 then
-		call {schema}.add_audit(message_id, 99, nak_by, 'Client did not own impacted queue item');
-		RAISE EXCEPTION 'Client did not own impacted queue item: %', message_id;
+		call {schema}.add_audit(msg_id, 99, nak_by, 'Client did not own impacted queue item');
+		RAISE EXCEPTION 'Client did not own impacted queue item: %', msg_id;
 	ELSE
-		call {schema}.add_audit(message_id, 1, nak_by, reason_why);
+		call {schema}.add_audit(msg_id, 1, nak_by, reason_why);
 	end if;
 
 	COMMIT;
