@@ -27,7 +27,7 @@ BEGIN
     ts := CURRENT_TIMESTAMP - make_interval( 0, 0, 0, audit_retention, 0, 0, 0 );
 
     -- Delete old audit rows
-    DELETE FROM {schema}.message_audit WHERE created_on < ts;
+    DELETE FROM {schema}.message_audit WHERE audit_on < ts;
 
 END;
 
