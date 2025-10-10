@@ -6,17 +6,18 @@ LANGUAGE 'plpgsql'
 AS $BODY$
 
 DECLARE
-    audit_count INTEGER DEFAULT 0;
+audit_count INTEGER DEFAULT 0;
     audit_count_post INTEGER DEFAULT 0;
     available_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
     backoff_jitter_max INTEGER DEFAULT 99;
     backoff_jitter_min INTEGER DEFAULT 1;
     client_id varchar(128) = 'client01';
-    loop_count INTEGER DEFAULT 0;
     delay_seconds INTEGER DEFAULT 0;
     die_roll INTEGER DEFAULT 0;
+    expires TIMESTAMP;
     lease_duration INTEGER DEFAULT 30;
     lease_expires TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+    loop_count INTEGER DEFAULT 0;
     max_recs INTEGER DEFAULT 50;
     message_state_id INTEGER DEFAULT 1;
     msg_id uuid DEFAULT uuid_generate_v4();
@@ -37,18 +38,20 @@ BEGIN
         exit when loop_count >= max_recs;
         loop_count := loop_count + 1;
 
-        SELECT floor(random() * (backoff_jitter_max - backoff_jitter_min + 1) + backoff_jitter_min)::int
-	    into die_roll;
+        SELECT random_value into die_roll from {schema}.random_between(1,100);
 
-        if (die_roll < 20 ) then
+        if (die_roll < 20) then
             call {schema}.enqueue(msg_json);
         else 
+
+            msg_id := uuid_generate_v4();
+
             if( die_roll > 80 ) then
                 message_state_id := 2;
                 retries := 1;
                 delay_seconds := die_roll * 3;
-                available_on := CURRENT_TIMESTAMP + make_interval( 0, 0, 0, 0, 0, 0, delay_seconds);
-                lease_expires := available_on + make_interval( 0, 0, 0, 0, 0, 0, lease_duration);
+                available_on := CURRENT_TIMESTAMP + make_interval( 0, 0, 0, 0, 0, 0, delay_seconds );
+                lease_expires := available_on + make_interval( 0, 0, 0, 0, 0, 0, lease_duration );
             else 
                 message_state_id := 1;
                 retries := 0;
@@ -57,8 +60,10 @@ BEGIN
                 lease_expires := null;
             end if;
 
-            INSERT INTO test01.message_queue(message_state_id, retries, available_on, lease_expires)
-            VALUES (message_state_id, retries, available_on, lease_expires);
+            INSERT INTO test01.message_queue(message_id, message_state_id, retries, available_on, lease_expires)
+            VALUES (msg_id, message_state_id, retries, available_on, lease_expires);
+
+            call {schema}.add_audit(msg_id, message_state_id, client_id, 'test queue');
 
         end if;
 
@@ -83,8 +88,9 @@ BEGIN
         into audit_count
         from {schema}.message_audit;
 
-        select {schema}.dequeue(client_id, lease_duration)
-        into msg_id, ts, msg_json;
+        select b.msg_id, b.expires, b.msg_json 
+            into msg_id, ts, msg_json 
+            from test01.dequeue(client_id, lease_duration) as b;
 
         IF msg_id IS NULL THEN
             test_bad := test_bad + 1;
@@ -99,20 +105,18 @@ BEGIN
             RAISE NOTICE 'Timestamp in future: %', msg_id;
         END IF;
 
-        SELECT floor(random() * (backoff_jitter_max - backoff_jitter_min + 1) + backoff_jitter_min)::int
-	    into die_roll;
-
+        SELECT random_value into die_roll from {schema}.random_between(1,100);
         IF die_roll < 10 THEN
             call {schema}.message_rej(msg_id, client_id, 'bad format');
         ELSIF die_roll < 70 THEN
-            call {schema}.message_ack(msg_id,client_id,'ack');
+            call {schema}.message_ack(msg_id,client_id, 'ack');
         ELSE
-            call {schema}.message_nak(msg_id,client_id,'uow fail');
+            call {schema}.message_nak(msg_id,client_id, 'uow fail');
         END IF;
 
         select count(*)
-        into audit_count_post
-        from {schema}.message_audit;
+            into audit_count_post
+            from {schema}.message_audit;
 
         IF audit_count >= audit_count_post THEN
             test_bad := test_bad + 1;
