@@ -26,9 +26,9 @@ BEGIN
 
     if(lease_duration < lease_duration_min) then
         select COALESCE(CAST(setting_value AS INTEGER), lease_duration_default)
-        into lease_duration
-        from {schema}.queue_configuration 
-        where setting_name = 'lease_duration';
+            into lease_duration
+            from {schema}.queue_configuration 
+            where setting_name = 'lease_duration';
         RAISE NOTICE 'invalid lease duration %, replaceing with system default: %', lease_seconds, lease_duration;
     end if;
 

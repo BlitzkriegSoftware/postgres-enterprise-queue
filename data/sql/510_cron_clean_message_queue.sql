@@ -1,14 +1,17 @@
 DROP PROCEDURE IF EXISTS {schema}.cron_clean_message_queue();
 
 CREATE OR REPLACE PROCEDURE {schema}.cron_clean_message_queue(
-    IN max_retries integer DEFAULT 7,
-    IN ts_exeeded TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    IN max_retries integer DEFAULT 7
 )
 LANGUAGE plpgsql
 AS $BODY$
 
 DECLARE
     msg_id uuid;
+    state_id integer := 6; 
+    who_by varchar := 'cron'; 
+    why_so varchar := 'cron_clean_message_queue';
+    
     dead_cursor CURSOR FOR 
         select message_id 
             from {schema}.message_queue 
@@ -16,7 +19,7 @@ DECLARE
                 (
                     (retries > max_retries)
                     OR
-                    (created_on < ts_exeeded)
+                    (message_expires < CURRENT_TIMESTAMP)
                 )
                 ;
 BEGIN
@@ -42,5 +45,5 @@ BEGIN
 END;
 $BODY$;
 
-ALTER PROCEDURE {schema}.cron_clean_message_queue( integer, TIMESTAMP )
+ALTER PROCEDURE {schema}.cron_clean_message_queue( integer )
     OWNER TO postgres;

@@ -10,6 +10,7 @@ CREATE TABLE {schema}.message_queue
     leased_by character varying(128) DEFAULT 'system',
     created_on timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     created_by character varying(128) DEFAULT 'system',
+    message_expires timestamp with time zone DEFAULT NULL,
     message_json json NOT NULL DEFAULT '{}',
     PRIMARY KEY (message_id)
 )

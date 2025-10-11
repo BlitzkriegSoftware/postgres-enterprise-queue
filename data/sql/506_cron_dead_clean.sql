@@ -16,7 +16,7 @@ BEGIN
     dead_letter_retention := dead_letter_retention_in;
     if dead_letter_retention <= 0 then
 
-        select COALESCE(CAST(dead_letter_retention AS INTEGER), dead_letter_retention_default)
+        select COALESCE(CAST(setting_value AS INTEGER), dead_letter_retention_default)
             into dead_letter_retention
             from {schema}.queue_configuration 
             where setting_name = 'dead_letter_retention';

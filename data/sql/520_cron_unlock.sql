@@ -51,17 +51,9 @@ BEGIN
         message_state_id = 2 
         AND
         lease_expires < ts;
-
-    --
-    -- clean out message queue
-    select COALESCE(CAST(setting_value AS INTEGER), item_ttl_default)
-        into item_ttl
-        from {schema}.queue_configuration 
-        where setting_name = 'item_ttl';
-    -- years, months, weeks, days, hours, mins, secs
-    ts_exeeded := CURRENT_TIMESTAMP -  make_interval( 0, 0, 0, 0, 0, item_ttl, 0 );
+   
     -- move really dead ones to dead letter
-    CALL {schema}.cron_clean_message_queue( max_retries, ts_exeeded );
+    CALL {schema}.cron_clean_message_queue( max_retries );
 
 END;
 $BODY$;

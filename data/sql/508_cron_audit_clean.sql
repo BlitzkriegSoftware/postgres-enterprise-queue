@@ -16,7 +16,7 @@ BEGIN
     audit_retention := audit_retention_in;
     if audit_retention <= 0 then
 
-        select COALESCE(CAST(audit_retention AS INTEGER), audit_retention_default)
+        select COALESCE(CAST(setting_value AS INTEGER), audit_retention_default)
             into audit_retention
             from {schema}.queue_configuration 
             where setting_name = 'audit_retention';

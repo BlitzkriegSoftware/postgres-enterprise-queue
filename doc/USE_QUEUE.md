@@ -11,7 +11,7 @@
     - [(1) ACK (Completed)](#1-ack-completed)
     - [(2) NAK (Can't complete)](#2-nak-cant-complete)
     - [(3) REJ (Reject)](#3-rej-reject)
-  - [Rescheduling a message](#rescheduling-a-message)
+  - [(4) Rescheduling a message](#4-rescheduling-a-message)
   - [Tracing what happened to your messages? The Audit](#tracing-what-happened-to-your-messages-the-audit)
 
 
@@ -148,7 +148,9 @@ call {schema}.message_rej(msg_id, client_id, reason_why);
 > For this method in particularly, the `reason_why` should be as detailed as possible for troubleshooting later. The use of an error code or somesuch is a good idea.
 
 
-## Rescheduling a message 
+## (4) Rescheduling a message 
+
+This does a NAK **plus** punts the message the `delay_seconds` into the future, use when you want to overcome a transitory fault in dependancy of the unit of work that hopefully will be healed with time.
 
 ```sql
 call {schema}.message_reschedule(msg_id, delay_seconds, [,done_by] [,reason_why])

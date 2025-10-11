@@ -16,7 +16,7 @@ BEGIN
     history_retention := history_retention_in;
     if history_retention <= 0 then
 
-        select COALESCE(CAST(history_retention AS INTEGER), history_retention_default)
+        select COALESCE(CAST(setting_value AS INTEGER), history_retention_default)
             into history_retention
             from {schema}.queue_configuration 
             where setting_name = 'history_retention';
