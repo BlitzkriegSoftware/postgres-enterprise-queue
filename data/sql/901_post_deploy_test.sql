@@ -2,6 +2,7 @@
 -- DO NOT RUN ON A LIVE QUEUE
 -- 
 CREATE OR REPLACE PROCEDURE {schema}.post_deploy_test(
+    -- 0 clear no data, 1 at begining, 2 at begining and end of test
     test_flag integer DEFAULT 2    
 )
 LANGUAGE 'plpgsql'
