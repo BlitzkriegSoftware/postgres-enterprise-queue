@@ -3,11 +3,11 @@
 DROP FUNCTION IF EXISTS {schema}.dequeue(character varying, integer);
 
 CREATE OR REPLACE FUNCTION {schema}.dequeue(
-	client_id varchar(128),
-	lease_seconds integer DEFAULT '-1'::integer,
-    OUT msg_id uuid,
-    OUT expires TIMESTAMP,
-    OUT msg_json json
+        client_id varchar(128),
+        lease_seconds integer DEFAULT '-1'::integer,
+        OUT msg_id uuid,
+        OUT expires TIMESTAMP,
+        OUT msg_json json
     )
     RETURNS  record
     LANGUAGE 'plpgsql'
@@ -19,10 +19,9 @@ DECLARE
     lease_duration integer := lease_seconds;
     lease_duration_min integer := 10;
     lease_duration_default integer := 30;
+    reason_why varchar := 'dequeued';
     ts TIMESTAMP := CURRENT_TIMESTAMP;
-    -- expires TIMESTAMP;
-	-- msg_id uuid;
-	-- msg_json json;
+
 BEGIN
 
     if(lease_duration < lease_duration_min) then
@@ -34,6 +33,7 @@ BEGIN
     end if;
 
     expires := ts + make_interval(0, 0, 0, 0, 0, 0, lease_duration);
+    reason_why := 'dequeued. lease seconds: ' || cast( lease_duration as varchar );
 
     WITH cte AS (
         SELECT message_id, lease_expires, message_json
@@ -61,7 +61,7 @@ BEGIN
         msg_json := '{}';
         call {schema}.add_audit(msg_id, 91, client_id, 'no items to dequeue');
     else
-        call {schema}.add_audit(msg_id, 2, client_id, 'dequeued');
+        call {schema}.add_audit(msg_id, 2, client_id, reason_why);
     end if;
 
     return; -- (select msg_id, expires, msg_json);
