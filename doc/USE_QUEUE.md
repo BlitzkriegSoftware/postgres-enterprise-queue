@@ -146,4 +146,20 @@ call {schema}.add_audit(
 
 So querying the table `message_audit` table 'where' or 'order by' `message_id` is useful.
 
+```sql
+SELECT * FROM test01.message_audit
+  WHERE cast(message_id as varchar) like '0303%'
+  ORDER BY message_id, audit_on ASC LIMIT 100
+```
+
+Example output:
+
+ | audit_id | message_id | message_state_id | audit_on | audit_by | reason_why |
+ |:---|:---|:---|:---|:---|:---|
+ | 21 | 0303596d-ed09-4b82-9cbd-6d36c41eeb6d | 1 | 2025-10-11 05:36:03.667064+00 | system | enqueued | 
+ | 91 | 0303596d-ed09-4b82-9cbd-6d36c41eeb6d | 2 | 2025-10-11 05:36:03.711044+00 | client01 | dequeued. lease seconds: 30 | 
+ | 92 | 0303596d-ed09-4b82-9cbd-6d36c41eeb6d | 3 | 2025-10-11 05:36:03.711044+00 | client01 | ack | 
+
+
+
 [<--- Start Here](./README.md)
