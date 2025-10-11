@@ -1,6 +1,16 @@
 # postgres-enterprise-queue
 
-Postgres queue with leasing, cleanup, etc, leverages [pg_cron](https://github.com/citusdata/pg_cron)
+- [postgres-enterprise-queue](#postgres-enterprise-queue)
+  - [Enterprise Queuing](#enterprise-queuing)
+  - [Start Postgres and install cron \& pg\_cron](#start-postgres-and-install-cron--pg_cron)
+    - [What does it do?](#what-does-it-do)
+  - [open a bash shell on Postgres container](#open-a-bash-shell-on-postgres-container)
+  - [stop postgres](#stop-postgres)
+    - [What it does](#what-it-does)
+  - [Leverages](#leverages)
+    - [pg\_cron](#pg_cron)
+
+Postgres queue with leasing, cleanup, etc.
 
 ## Enterprise Queuing
 
