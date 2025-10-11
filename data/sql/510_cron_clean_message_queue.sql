@@ -2,23 +2,23 @@ DROP PROCEDURE IF EXISTS {schema}.cron_clean_message_queue();
 
 CREATE OR REPLACE PROCEDURE {schema}.cron_clean_message_queue(
     IN max_retries integer DEFAULT 7,
-    IN ts_exeeded TIMESTAMP := CURRENT_TIMESTAMP
+    IN ts_exeeded TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
-
 LANGUAGE plpgsql
 AS $BODY$
 
 DECLARE
-        dead_cursor CURSOR FOR 
-            select message_id 
-                from {schema}.message_queue 
-                where 
-                    (
-                        (retries > max_retries)
-                        OR
-                        (created_on < ts_exeeded)
-                    )
-                    ;
+    msg_id uuid;
+    dead_cursor CURSOR FOR 
+        select message_id 
+            from {schema}.message_queue 
+            where 
+                (
+                    (retries > max_retries)
+                    OR
+                    (created_on < ts_exeeded)
+                )
+                ;
 BEGIN
 
     OPEN dead_cursor;
