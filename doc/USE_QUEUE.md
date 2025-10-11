@@ -94,7 +94,9 @@ Again, if the calls to the completion events fail, increase the `lease_duration`
 
 The default of 30 seconds is a long time to process anything in computer time.
 
-Please see [Message Lifecycle](./MESSAGE_LIFECYCLE.md).
+If the problem is that, to do the Unit-of-Work (UoW), some other dependancies are not ready or available, and may not be for a while, so what we need to do **instead** of calling [NAK()](./USE_QUEUE.md#2-nak-cant-complete) is to call [Reschedule()](./USE_QUEUE.md#rescheduling-a-message) to bump the message into the future.
+
+Please also see [Message Lifecycle](./MESSAGE_LIFECYCLE.md).
 
 ## Post UoW call one of these methods
 
@@ -139,11 +141,12 @@ This what what should happen when:
 - Is no longer relavant
 - etc.
 
-For this method in particularly, the `reason_why` should be as detailed as possible for troubleshooting later. The use of an error code or somesuch is a good idea.
-
 ```sql
 call {schema}.message_rej(msg_id, client_id, reason_why);
 ```
+
+> For this method in particularly, the `reason_why` should be as detailed as possible for troubleshooting later. The use of an error code or somesuch is a good idea.
+
 
 ## Rescheduling a message 
 
@@ -158,6 +161,8 @@ call {schema}.message_reschedule(msg_id, delay_seconds, [,done_by] [,reason_why]
   - Negative:  number past aka immediate delivery
 - `done_by`: (default 'system')
 - `reason_why`: (default: 'rescheduled')
+   - Please consider suppling a detailed reason why a message is being rescheduled for the audit
+   - Including a unique reason-code is a good practice 
 
 ## Tracing what happened to your messages? The Audit
 
@@ -176,10 +181,12 @@ call {schema}.add_audit(
 * `state_id`: a valid state (see [message_state](../data/sql/702_message_state_Data.sql) table)
 * `audit_by`: caller, typically 'system' or `client_id`
 * `reason_why`: (text) a text explaination that is searchable in the source code
+   - Use of a reason-code is a good practice 
 
-So querying the table `message_audit` table 'where' or 'order by' `message_id` is useful.
+So querying the table `message_audit` table 'where' or 'order by' `message_id` is useful:
 
 ```sql
+-- Find out what happened to a message whose id start with...
 SELECT * FROM test01.message_audit
   WHERE cast(message_id as varchar) like '0303%'
   ORDER BY message_id, audit_on ASC LIMIT 100

@@ -30,6 +30,8 @@ BEGIN
     where
         (message_id = msg_id);
 
+    reason_why := reason_why || '. Seconds delayed: ' || cast(delay_seconds as varchar);
+
     call {schema}.add_audit(msg_id, 4, done_by, reason_why);
 END;
 $BODY$;
