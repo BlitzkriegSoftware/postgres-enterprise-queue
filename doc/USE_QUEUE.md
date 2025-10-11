@@ -6,6 +6,8 @@
   - [Enqueue item](#enqueue-item)
   - [Dequeue Items](#dequeue-items)
   - [Unit of Work Observations](#unit-of-work-observations)
+    - [Too many NAKs or Lease-Expired Events](#too-many-naks-or-lease-expired-events)
+  - [Post UoW call one of these methods](#post-uow-call-one-of-these-methods)
     - [(1) ACK (Completed)](#1-ack-completed)
     - [(2) NAK (Can't complete)](#2-nak-cant-complete)
     - [(3) REJ (Reject)](#3-rej-reject)
@@ -86,9 +88,15 @@ Some notes on the arguments:
 
 The unit of work (UoW) execution must be completed in less time than the `lease_duration` e.g. by the TIMESTAMP returned as `expires` or subsequent calls to ACK, NAK, or REJ will fail as technically, the client does not "own" the work item any more so the system has effectively done an "auto-NAK". This mechanism is baked into the `dequeue()` procedure, but also part of the scheduled cron job [cron_unlock](../data/sql/520_cron_unlock.sql) which matches the 'lease expired' event in the diagram above.
 
-> Again, if the calls to the completion events fail, increase the `lease_duration` AND/OR investigate why the UoW itself is taking so long to process. The default of 30 seconds is a long time to process anything in computer time.
+### Too many NAKs or Lease-Expired Events
+
+Again, if the calls to the completion events fail, increase the `lease_duration` AND/OR investigate why the UoW itself is taking so long to process. 
+
+The default of 30 seconds is a long time to process anything in computer time.
 
 Please see [Message Lifecycle](./MESSAGE_LIFECYCLE.md).
+
+## Post UoW call one of these methods
 
 All of them have 3 arguments:
 
@@ -108,7 +116,7 @@ call {schema}.message_ack(msg_id, client_id, 'ack');
 
 ### (2) NAK (Can't complete)
 
-The unit of work can not be processed successfully, and some other client should process it. This is also what happens if the message times out.
+The unit of work can not be processed successfully, and some other client should process it. This is also what happens if the message times out (see the discussion below on )
 
 ```sql
 call {schema}.message_nak(msg_id, client_id, 'uow fail');
@@ -178,7 +186,5 @@ Example output:
  | 21 | 0303596d-ed09-4b82-9cbd-6d36c41eeb6d | 1 | 2025-10-11 05:36:03.667064+00 | system | enqueued | 
  | 91 | 0303596d-ed09-4b82-9cbd-6d36c41eeb6d | 2 | 2025-10-11 05:36:03.711044+00 | client01 | dequeued. lease seconds: 30 | 
  | 92 | 0303596d-ed09-4b82-9cbd-6d36c41eeb6d | 3 | 2025-10-11 05:36:03.711044+00 | client01 | ack | 
-
-
 
 [<--- Start Here](./README.md)
