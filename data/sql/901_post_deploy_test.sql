@@ -27,6 +27,7 @@ DECLARE
     message_state_id INTEGER DEFAULT 1;
     msg_id uuid DEFAULT uuid_generate_v4();
     msg_json json = '{}';
+    reschedule_delay integer := 900;
     retries INTEGER DEFAULT 0;
     test_bad INTEGER DEFAULT 0;
     test_iteration_max INTEGER := max_recs / 2;
@@ -103,6 +104,9 @@ BEGIN
             ELSIF die_roll < 30 THEN
                 RAISE NOTICE '   NAK'; -- 2
                 call {schema}.message_nak(msg_id, client_id, 'uow fail');
+            ELSIF die_roll < 40 THEN
+                RAISE NOTICE '   RSH'; -- 4
+                call {schema}.message_reschedule(msg_id, reschedule_delay, client_id, 'temp. unavailable');
             ELSE
                 RAISE NOTICE '   ACK'; -- 1
                 call {schema}.message_ack(msg_id, client_id, 'ack');
