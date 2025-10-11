@@ -1,6 +1,6 @@
 # How to use your queue
 
-There is nice example of the unit of work pattern and basic queue usage in the SQL file [Post Deployment Test](data\sql\901_post_deploy_test.sql).
+There is nice example of the unit of work pattern and basic queue usage in the SQL file [Post Deployment Test](../data/sql/901_post_deploy_test.sql).
 
 ## What is a unit-of-work?
 
