@@ -49,3 +49,5 @@ select jobid, jobname, schedule, command from cron.job;
 | 5 | "retention_history" | "8 1 * * 6" | "CALL test01.cron_history_clean(0)" |
 | 6 | "retention_audit_log" | "0 3 * * *" | "CALL test01.cron_audit_clean(0)" |
 | 7 | "nightly-vacuum" | "45 4 * * *" | "VACUUM" |
+
+[<--- Start Here](./README.md)
