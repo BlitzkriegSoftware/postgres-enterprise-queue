@@ -39,7 +39,7 @@ Here are the documents for Postgres Enterprise Queues (PEQ)
 .\bash-pg.ps1
 ```
 
-It opens a bash shell...
+It opens a bash shell...with handy guidance
 
 ## stop postgres
 
