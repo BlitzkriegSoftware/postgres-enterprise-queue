@@ -87,6 +87,7 @@ To remove queue entirely, delete its `schema`.
 To just reset it to the newly created state, use this procedure:
 
 ```sql
+-- Warning this is the nuclear option, there is no UNDO
  call {schema}.reset_queue();
 ```
 
