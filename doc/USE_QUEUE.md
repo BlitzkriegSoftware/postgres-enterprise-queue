@@ -6,9 +6,9 @@
   - [Enqueue item](#enqueue-item)
   - [Dequeue Items](#dequeue-items)
   - [Unit of Work Observations](#unit-of-work-observations)
-    - [ACK (Completed)](#ack-completed)
-    - [NAK (Can't complete)](#nak-cant-complete)
-    - [REJ (Reject)](#rej-reject)
+    - [(1) ACK (Completed)](#1-ack-completed)
+    - [(2) NAK (Can't complete)](#2-nak-cant-complete)
+    - [(3) REJ (Reject)](#3-rej-reject)
   - [Rescheduling a message](#rescheduling-a-message)
   - [Tracing what happened to your messages? The Audit](#tracing-what-happened-to-your-messages-the-audit)
 
@@ -96,7 +96,7 @@ All of them have 3 arguments:
 - `client_id`: of the client
 - `reason`: why we called the UOW method, this flows into the `audit`
 
-### ACK (Completed)
+### (1) ACK (Completed)
 
 The unit of work expressed by the message was completed successfully, the message is moved to history.
 
@@ -106,7 +106,7 @@ The unit of work expressed by the message was completed successfully, the messag
 call {schema}.message_ack(msg_id, client_id, 'ack');
 ```
 
-### NAK (Can't complete)
+### (2) NAK (Can't complete)
 
 The unit of work can not be processed successfully, and some other client should process it. This is also what happens if the message times out.
 
@@ -114,9 +114,9 @@ The unit of work can not be processed successfully, and some other client should
 call {schema}.message_nak(msg_id, client_id, 'uow fail');
 ```
 
-### REJ (Reject)
+### (3) REJ (Reject)
 
-The message is bad somehow, and can never be processed, it is moved to DEAD-LETTER.
+The message is bad somehow, and can never be processed, it needs to be moved to DEAD-LETTER.
 
 This what what should happen when:
 
