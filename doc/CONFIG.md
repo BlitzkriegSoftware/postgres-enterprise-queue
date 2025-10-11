@@ -112,4 +112,4 @@ Copied from [pg_cron](https://github.com/citusdata/pg_cron/blob/main/README.md?p
 
 An easy way to create a cron schedule is: [crontab.guru](http://crontab.guru/).
 
-[<---](./README.md)
+[<--- Start Here](./README.md)

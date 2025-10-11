@@ -1,6 +1,10 @@
 # README.md -- Start Here
 
-Please read: [Message Lifecycle](./MESSAGE_LIFECYCLE.md)
+- [Message Lifecycle](./MESSAGE_LIFECYCLE.md)
+- [Schema](./SCHEMA.md)
+- [Adminstration](./PEQ_ADMIN.md)
+- [Configuration](./CONFIG.md)
+- [Use the Queue](./USE_QUEUE.md)
 
 ## Generate an enterprise queue
 
@@ -8,11 +12,7 @@ Here is how to generate an enterprise queue in the desired schema. One schema pe
 
 ### Prerequisites
 
-Make sure you have:
-
-- NPM v11+
-- Node v24+
-- Powershell 7+
+Make sure you have: Powershell 7+
 
 ### Preperation
 
@@ -49,14 +49,5 @@ This will create the objects in [schema](./SCHEMA.md) and the default [configura
 ## How to use your Queue
 
 See: [Use your Queue](./USE_QUEUE.md)
-
-## Other Pages
-
-- [Start Here](./README.md)
-- [Message Lifecycle](./MESSAGE_LIFECYCLE.md)
-- [Schema](./SCHEMA.md)
-- [Adminstration](./PEQ_ADMIN.md)
-- [Configuration](./CONFIG.md)
-- [Use the Queue](./USE_QUEUE.md)
 
 [^Home](../README.md)
