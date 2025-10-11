@@ -29,9 +29,11 @@ DECLARE
     test_bad INTEGER DEFAULT 0;
     test_iteration_max INTEGER := max_recs / 2;
     test_result INTEGER DEFAULT 0; -- 0 Pass, 1 Fail
+    test_result_text varchar(128);
     ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 
 BEGIN
+    -- clean start
     call {schema}.reset_queue();
 
     --
@@ -59,8 +61,8 @@ BEGIN
         loop_count := loop_count + 1;
 
         select count(*)
-        into audit_count
-        from {schema}.message_audit;
+            into audit_count
+            from {schema}.message_audit;
 
         select b.msg_id, b.expires, b.msg_json 
             into msg_id, ts, msg_json 
@@ -85,7 +87,7 @@ BEGIN
 
         BEGIN
 
-            SELECT random_value into die_roll from {schema}.random_between(1,100);
+            SELECT random_value into die_roll from {schema}.random_between(1, 100);
             IF die_roll < 10 THEN
                 RAISE NOTICE '   REJ';
                 call {schema}.message_rej(msg_id, client_id, 'bad format');
@@ -102,13 +104,20 @@ BEGIN
                 RAISE NOTICE 'An unknown error occurred: %', SQLERRM;
         END;
 
-    end loop;
+    END LOOP;
 
     -- Reset is desirable
-    -- call {schema}.reset_queue();
+    call {schema}.reset_queue();
 
     --
     -- Test Results
-	RAISE NOTICE 'test result: %, Failed Tests: %', test_result, test_bad;
+    IF test_result = 0 THEN
+        test_result_text := 'pass';
+    ELSE
+        test_result_text := 'fail';
+    END IF;
+
+	RAISE NOTICE 'test result: %, Failed Tests: %', test_result_text, test_bad;
+
 END;
 $BODY$;
