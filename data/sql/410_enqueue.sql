@@ -62,9 +62,9 @@ BEGIN
 
 	call {schema}.add_audit(message_id, 1, created_by, reason_why);
 
-	IF EXISTS (select pg_current_xact_id_if_assigned()) THEN
-		COMMIT;
-	END IF;
+	-- IF EXISTS (select pg_current_xact_id_if_assigned()) THEN
+	-- 	COMMIT;
+	-- END IF;
 
 END;
 $BODY$;
