@@ -3,7 +3,8 @@
 -- 
 CREATE OR REPLACE PROCEDURE {schema}.post_deploy_test(
     -- 0 clear no data, 1 at begining, 2 at begining and end of test
-    test_flag integer DEFAULT 2    
+    test_flag integer DEFAULT 2,
+    test_iterations integer DEFAULT 100   
 )
 LANGUAGE 'plpgsql'
 AS $BODY$
@@ -24,14 +25,14 @@ DECLARE
     lease_expires TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
     lease_owner varchar(128);
     loop_count INTEGER DEFAULT 0;
-    max_recs INTEGER DEFAULT 50;
     message_state_id INTEGER DEFAULT 1;
     msg_id uuid DEFAULT uuid_generate_v4();
     msg_json json = '{}';
     reschedule_delay integer := 900;
     retries INTEGER DEFAULT 0;
     test_bad INTEGER DEFAULT 0;
-    test_iteration_max INTEGER := max_recs / 2;
+    test_iteration_default INTEGER := 100;
+    test_iterations_consumer INTEGER := 0;
     test_result INTEGER DEFAULT 0; -- 0 Pass, 1 Fail
     test_result_text varchar(128);
     ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
@@ -43,11 +44,15 @@ BEGIN
         RAISE NOTICE 'Reset Tables';
     END IF;
 
+    IF test_iterations < 0 THEN
+        test_iterations := test_iteration_default;
+    END IF;
+
     --
-    -- Create some test messages - The PRODUCER
+    -- The PRODUCER
     loop_count := 0;
     loop
-        exit when loop_count >= max_recs;
+        exit when loop_count >= test_iterations;
         loop_count := loop_count + 1;
         call {schema}.enqueue(msg_json);
     end loop;
@@ -62,9 +67,11 @@ BEGIN
     END IF;
 
     -- The CONSUMER
+    test_iterations_consumer := test_iterations * 2 / 3;
+    
     loop_count := 0;
     loop
-        exit when loop_count >= test_iteration_max;
+        exit when loop_count >= test_iterations_consumer;
         loop_count := loop_count + 1;
 
         select count(*)
@@ -78,7 +85,7 @@ BEGIN
             into msg_id, ts, msg_json 
             from test01.dequeue(client_id, lease_duration) as b;
 
-        RAISE NOTICE 'dequeue. ID: %, expires: %, json: %', msg_id, ts, msg_json;
+        RAISE NOTICE '[%] dequeue. ID: %, expires: %, json: %', loop_count, msg_id, ts, msg_json;
 
         IF ((msg_id IS NULL) or (msg_id = empty_id)) THEN
             test_bad := test_bad + 1;
