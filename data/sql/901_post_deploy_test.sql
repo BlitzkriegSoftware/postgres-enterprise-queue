@@ -109,16 +109,16 @@ BEGIN
             SELECT random_value into die_roll from {schema}.random_between(1, 100);
             IF die_roll < 10 THEN
                 RAISE NOTICE '   REJ'; -- 3
-                call {schema}.message_rej(msg_id, client_id, 'bad format');
+                call {schema}.message_rej(msg_id, client_id, 'REJ: bad format');
             ELSIF die_roll < 30 THEN
                 RAISE NOTICE '   NAK'; -- 2
-                call {schema}.message_nak(msg_id, client_id, 'uow fail');
+                call {schema}.message_nak(msg_id, client_id, 'NAK: uow fail');
             ELSIF die_roll < 40 THEN
                 RAISE NOTICE '   RSH'; -- 4
-                call {schema}.message_reschedule(msg_id, reschedule_delay, client_id, 'temp. unavailable');
+                call {schema}.message_reschedule(msg_id, reschedule_delay, client_id, 'RSH: temp. unavailable');
             ELSE
                 RAISE NOTICE '   ACK'; -- 1
-                call {schema}.message_ack(msg_id, client_id, 'ack');
+                call {schema}.message_ack(msg_id, client_id, 'ACK: uow success');
             END IF;
 
         EXCEPTION
