@@ -4,12 +4,24 @@ See Also:
 * [Schema](./SCHEMA.md)
 * [Message Lifecycle](./MESSAGE_LIFECYCLE.md)
 
-## CRON Jobs
+## Scheduled Jobs
 
 ```sql
--- list of jobs
 select jobid, jobname, schedule, command from cron.job;
+```
 
+| "jobid" | "jobname" | "schedule" | "command" |
+|--:|:---|:---|:---|
+| 3 | "retention_queue" | "*/7 * * * * *" | "CALL test01.cron_unlock(0)" |
+| 4 | "retention_dead_letter" | "0 3 * * *" | "CALL test01.cron_dead_letter_retention(0)" |
+| 5 | "retention_history" | "8 1 * * 6" | "CALL test01.cron_history_clean(0)" |
+| 6 | "retention_audit_log" | "0 3 * * *" | "CALL test01.cron_audit_clean(0)" |
+| 7 | "nightly-vacuum" | "45 4 * * *" | "VACUUM" |
+
+
+## CRON Execution History
+
+```sql
 -- job execution history
 select * from cron.job_run_details order by start_time desc;
 ```
@@ -33,8 +45,6 @@ Moves messages to `dead-letter` that fit either these criteria:
 - `ts_exeeded`: message is older than this timestamp computed from TTL
   - `item_ttl` (default: 4320 minutes) from `queue_configuration` + current timestamp
 
-
-
 ### cron_unlock
 
 ```sql
@@ -54,7 +64,6 @@ call cron_history_clean([history_retention_in]);
 ```
 * `history_retention_in`: If Zero computed from `history_retention` value (181 days by default) from `queue_configuration`
    - Messages old than this are deleted from the `message_history` table
-
 
 ### cron_audit_clean
 

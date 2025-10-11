@@ -50,14 +50,13 @@ Queued --> Leased --> (REJECT) --> Dead-Letter
 
 Message never get processed, this is really bad news indeed. This can also happen if message retries are exceeded. 
 
-> Moral: Do not ignore `dead-letter`, in a perfect world, it should have NO rows, if not there is a problem.
+> Moral: Do not ignore `dead-letter`, in a perfect world, it should have NO rows, if there are rows in dead-letter there is a problem that should be investigated.
 
 ```text
 Queued --> [nothing happens] --> Event:{Message-Expired} ==> (Message-Expired) --> Dead-Letter
 ```
 
 -or-
-
 
 ```text
 Queued --> [retries exhaused, message marked (Message-Expired)] --> {Message-Expired} --> Dead-Letter
