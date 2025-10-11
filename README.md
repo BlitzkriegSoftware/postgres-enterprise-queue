@@ -51,6 +51,15 @@ Here are the documents for Postgres Enterprise Queues (PEQ)
 
 It opens a bash shell...with handy guidance
 
+```text
+SQL Scripts Folder: /var/lib/postgresql/data
+  su -- postgres -c {pg_command}
+Postgres Utilities Folder: /usr/lib/postgresql/16/bin
+Postgres Logs: /var/log/postgresql
+root@248bcee33ea9:/var/lib/postgresql/data#
+```
+
+
 ## stop postgres
 
 ```powershell
