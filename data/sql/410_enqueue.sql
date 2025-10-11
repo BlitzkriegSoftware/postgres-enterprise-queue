@@ -4,7 +4,7 @@ CREATE OR REPLACE PROCEDURE {schema}.enqueue(
 	IN message_json json,
 	IN message_id uuid DEFAULT uuid_generate_v4(),
 	IN delay_seconds integer DEFAULT 0,
-	IN created_by character varying DEFAULT 'system'::character varying
+	IN created_by character varying DEFAULT 'system'::character varying,
 	in item_ttl integer DEFAULT 0
 )
 LANGUAGE 'plpgsql'
@@ -25,7 +25,7 @@ BEGIN
 	end if;
 
 	-- Item Time-to-Live (TTL)
-	if item_ttl < 0 then
+	if item_ttl <= 0 then
 		select COALESCE(CAST(setting_value AS INTEGER), item_ttl_default)
 			into item_ttl
 			from {schema}.queue_configuration 
