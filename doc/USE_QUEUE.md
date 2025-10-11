@@ -106,8 +106,10 @@ This what what should happen when:
 - Is no longer relavant
 - etc.
 
+For this method in particularly, the `reason_why` should be as detailed as possible for troubleshooting later. The use of an error code or somesuch is a good idea.
+
 ```sql
-call {schema}.message_rej(msg_id, client_id, 'bad format');
+call {schema}.message_rej(msg_id, client_id, reason_why);
 ```
 
 ## Rescheduling a message 

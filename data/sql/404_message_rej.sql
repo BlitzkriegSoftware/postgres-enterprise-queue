@@ -5,7 +5,7 @@ DROP PROCEDURE IF EXISTS {schema}.message_rej(uuid, character varying, text);
 CREATE OR REPLACE PROCEDURE {schema}.message_rej(
 	IN msg_id uuid,
 	IN rej_by character varying DEFAULT 'system'::character varying,
-	IN reason_why text DEFAULT 'completed'::text)
+	IN reason_why text DEFAULT 'REJ'::text)
 LANGUAGE plpgsql
 AS $BODY$
 
