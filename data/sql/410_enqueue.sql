@@ -11,12 +11,12 @@ LANGUAGE 'plpgsql'
 AS $BODY$
 
 DECLARE
+	item_ttl_min integer := 15; -- seconds
 	item_ttl_default integer := 4320; -- minutes
 	ts TIMESTAMP := CURRENT_TIMESTAMP;
 	expires TIMESTAMP := CURRENT_TIMESTAMP;
-	xid8value xid8;
 	reason_why varchar := 'enqueued.';
-	
+
 BEGIN
 
 	-- Positive into the future, negative is ASAP
@@ -24,8 +24,8 @@ BEGIN
 		ts := ts + make_interval( 0, 0, 0, 0, 0, 0, delay_seconds);
 	end if;
 
-	-- Item Time-to-Live (TTL)
-	if item_ttl <= 0 then
+	-- Item Time-to-Live (TTL) Minutes
+	if item_ttl <= item_ttl_min then
 		select COALESCE(CAST(setting_value AS INTEGER), item_ttl_default)
 			into item_ttl
 			from {schema}.queue_configuration 
@@ -62,12 +62,10 @@ BEGIN
 
 	call {schema}.add_audit(message_id, 1, created_by, reason_why);
 
-	select pg_current_xact_id_if_assigned()
-	into xid8value;
-
-	if(xid8value is not null) then
+	IF EXISTS (select pg_current_xact_id_if_assigned()) THEN
 		COMMIT;
-	end if;
+	END IF;
+
 END;
 $BODY$;
 

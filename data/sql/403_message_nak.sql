@@ -53,6 +53,7 @@ BEGIN
 		call {schema}.add_audit(msg_id, 1, nak_by, reason_why);
 	end if;
 
-	-- COMMIT;
+
+
 END;
 $$;
