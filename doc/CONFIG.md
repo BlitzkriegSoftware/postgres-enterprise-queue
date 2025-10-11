@@ -82,7 +82,7 @@ seconds_from_now_message_will_be_available =
 
 ### Example Delays
 
-<img src='./backoff.png' width='400px'>
+<img src='./backoff.png' width='600px'>
 
 Or from about 1/2 a minute to less than 7 minutes increasing in duration per retry.
 

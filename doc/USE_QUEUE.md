@@ -124,4 +124,24 @@ call {schema}.message_reschedule(msg_id, delay_seconds, [,done_by] [,reason_why]
 - `done_by`: (default 'system')
 - `reason_why`: (default: 'rescheduled')
 
+## Tracing what happened to your messages? The Audit
+
+The audit trail for system end up in the table `message_audit` and are put there because various functions and procedures call the procedure:
+
+```sql
+call {schema}.add_audit(
+	IN msg_id uuid,
+	IN state_id integer,
+	IN audit_by character varying,
+	IN reason_why text
+);
+```
+
+* `msg_id`: the key of the message (uuid, guid)
+* `state_id`: a valid state (see [message_state](../data/sql/702_message_state_Data.sql) table)
+* `audit_by`: caller, typically 'system' or `client_id`
+* `reason_why`: (text) a text explaination that is searchable in the source code
+
+So querying the table `message_audit` table 'where' or 'order by' `message_id` is useful.
+
 [<--- Start Here](./README.md)
