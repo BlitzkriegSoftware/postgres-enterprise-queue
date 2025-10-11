@@ -166,6 +166,10 @@ call {schema}.message_reschedule(msg_id, delay_seconds, [,done_by] [,reason_why]
    - Please consider suppling a detailed reason why a message is being rescheduled for the audit
    - Including a unique reason-code is a good practice 
 
+Other effects: 
+- It also bumps the messages expiration time by the same amount as the rescheduled amount
+- `retries` are set to zero and the lease info is cleared
+
 ## Tracing what happened to your messages? The Audit
 
 The audit trail for system end up in the table `message_audit` and are put there because various functions and procedures call the procedure:

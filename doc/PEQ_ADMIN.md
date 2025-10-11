@@ -61,15 +61,16 @@ These are called by the CRON jobs see [CRON Setup Script](../data/sql/800_Cron_S
 Called by `cron_history_clean`
 
 ```sql
-call cron_clean_message_queue(max_retries, ts_exeeded);
+call cron_clean_message_queue(max_retries);
 ```
 
 Moves messages to `dead-letter` that fit either these criteria:
 
 - `max_retries`: exceed for a mesasage
     - `max_retries` (default 7) from `queue_configuration`
-- `ts_exeeded`: message is older than this timestamp computed from TTL
-  - `item_ttl` (default: 4320 minutes) from `queue_configuration` + current timestamp
+- The `CURRENT_TIMESTAMP` is greater than the messages `message_expires` field
+  - This is set on message create from `item_ttl` (default: 4320 minutes) from `queue_configuration` + current timestamp
+
 
 ### cron_unlock
 

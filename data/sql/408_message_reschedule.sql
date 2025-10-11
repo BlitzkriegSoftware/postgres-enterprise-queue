@@ -26,6 +26,7 @@ BEGIN
         message_state_id = 1, -- 4 rescheduled
         lease_expires = null,
         leased_by = null,
+        message_expires = message_expires + make_interval( 0, 0, 0, 0, 0, 0, delay_seconds),
         retries = 0
     where
         (message_id = msg_id);
