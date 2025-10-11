@@ -16,9 +16,9 @@ BEGIN
     ALTER SEQUENCE {schema}.message_audit_message_id_seq RESTART WITH 1;
     TRUNCATE TABLE {schema}.message_audit RESTART IDENTITY CASCADE;
 
-	IF EXISTS (select pg_current_xact_id_if_assigned()) THEN
-		COMMIT;
-	END IF;
+	-- IF EXISTS (select pg_current_xact_id_if_assigned()) THEN
+	-- 	COMMIT;
+	-- END IF;
 
 END;
 $BODY$;

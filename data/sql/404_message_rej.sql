@@ -36,9 +36,9 @@ BEGIN
 		RAISE EXCEPTION 'Client did not own impacted queue item or lease expired: %', msg_id;
 	end if;
 
-	IF EXISTS (select pg_current_xact_id_if_assigned()) THEN
-		COMMIT;
-	END IF;
+	-- IF EXISTS (select pg_current_xact_id_if_assigned()) THEN
+	-- 	COMMIT;
+	-- END IF;
 
 END;
 $BODY$;
