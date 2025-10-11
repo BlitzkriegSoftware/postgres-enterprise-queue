@@ -2,7 +2,22 @@
 
 There is nice example of the unit of work pattern and basic queue usage in the SQL file [Post Deployment Test](data\sql\901_post_deploy_test.sql).
 
-## Enqueue items
+## What is a unit-of-work?
+
+> See [Unit of Work](https://en.wikipedia.org/wiki/Unit_of_work) on Wikipedia
+
+Basically, we enqueue a message to serve as the payload of information for some processing to be done by a consumer, queued up by a producer, that is the smallest amount of processing that is an atomic unit to be processed. 
+
+A UoW has one of these possible outcomes:
+
+* ACK: Happy path, work is done successfully
+* NAK: Work could not be done, but is do-able in the future, potentially if given more time
+   - Rescheduled (worse case, really need to delay processing)
+* REJ: UoW should NOT be done.
+
+> One message => One Unit of Work
+
+## Enqueue item 
 
 Add a new item to the queue
 
@@ -48,6 +63,8 @@ Some notes on the arguments:
 
 - If not supplied, the lease_duration is fetched from `queue_configuration` table setting of `lease_duration`, with a fallback of `30` seconds.
 
+  - If the result is a NAK or the message timed out, consider increasing the lease duration by 50% for each retry
+
 ## Unit of Work
 
 The unit of work must be completed in less time than the `lease_duration` e.g. by the TIMESTAMP returned as `expires` or subsequent calls to ACK, NAK, or REJ will fail.
@@ -78,7 +95,7 @@ The unit of work can not be processed successfully, and some other client should
 call {schema}.message_nak(msg_id, client_id, 'uow fail');
 ```
 
-## REJ (Reject)
+### REJ (Reject)
 
 The message is bad somehow, and can never be processed, it is moved to DEAD-LETTER.
 
@@ -92,3 +109,17 @@ This what what should happen when:
 ```sql
 call {schema}.message_rej(msg_id, client_id, 'bad format');
 ```
+
+## Rescheduling a message 
+
+```sql
+call {schema}.message_reschedule(msg_id, delay_seconds, [,done_by] [,reason_why])
+```
+
+- `msg_id`: the UUID of the message
+- `delay_seconds`: (default 3600 [1 hour])
+  - Zero: use default
+  - Postive: number future
+  - Negative:  number past aka immediate delivery
+- `done_by`: (default 'system')
+- `reason_why`: (default: 'rescheduled')
