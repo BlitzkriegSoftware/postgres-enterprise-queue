@@ -49,11 +49,3 @@ Here are the documents for Postgres Enterprise Queues (PEQ)
 ### pg_cron
 
 - [pg_cron](https://github.com/citusdata/pg_cron)
-
-```sql
--- list of jobs
-select jobid, jobname, schedule, command from cron.job;
-
--- job execution history
-select * from cron.job_run_details order by start_time desc;
-```
