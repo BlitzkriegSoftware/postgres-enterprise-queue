@@ -8,12 +8,14 @@ There is nice example of the unit of work pattern and basic queue usage in the S
 
 Basically, we enqueue a message to serve as the payload of information for some processing to be done by a consumer, queued up by a producer, that is the smallest amount of processing that is an atomic unit to be processed. 
 
+<img src='./UoW_Pattern.png' width='800px'>
+
 A UoW has one of these possible outcomes:
 
-* ACK: Happy path, work is done successfully
-* NAK: Work could not be done, but is do-able in the future, potentially if given more time
+* (1) ACK: Happy path, work is done successfully
+* (2) NAK: Work could not be done, but is do-able in the future, potentially if given more time
    - Rescheduled (worse case, really need to delay processing)
-* REJ: UoW should NOT be done.
+* (3) REJ: UoW should NOT be done.
 
 > One message => One Unit of Work
 
@@ -65,9 +67,11 @@ Some notes on the arguments:
 
   - If the result is a NAK or the message timed out, consider increasing the lease duration by 50% for each retry
 
-## Unit of Work
+## Unit of Work Observations
 
-The unit of work must be completed in less time than the `lease_duration` e.g. by the TIMESTAMP returned as `expires` or subsequent calls to ACK, NAK, or REJ will fail.
+The unit of work must be completed in less time than the `lease_duration` e.g. by the TIMESTAMP returned as `expires` or subsequent calls to ACK, NAK, or REJ will fail as technically, the client does not "own" the work item any more so the system has effectively done an "auto-NAK". This mechanism is baked into the `dequeue()` procedure, but also part of the scheduled cron job [cron_unlock](../data/sql/520_cron_unlock.sql) which matches the 'lease expired' event in the diagram above.
+
+> Again, if the calls to the completion events fail, increase the `lease_duration` AND/OR investigate why the UoW itself is taking so long to process. The default of 30 seconds is a long time to process anything in computer time.
 
 Please see [Message Lifecycle](./MESSAGE_LIFECYCLE.md).
 

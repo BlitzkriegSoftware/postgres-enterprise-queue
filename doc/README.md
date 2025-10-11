@@ -29,25 +29,34 @@ Checklist
 ```powershell
 .\make-queue.ps1 `
     -ConnectionString "postgresql://postgres:password123-@localhost:5432/postgres" `
-    -SchemaName "test01"
+    -SchemaName "test01" `
+    -RoleName "test-q-role"
 ```
 
-- `ConnectionString`: valid Postgres Connectiojn String (sample is the docker one)
+Arguments:
+- `ConnectionString`: valid Postgres Connection String (sample is the docker one)
 - `SchemaName`: (required) schema to put the queue into
 - `RoleName`: (unused, future)
 
 ### Make-Queue: What does it do?
 
-1. Takes the schema in `sql\`
+1. Takes the schema in `sql\` that state with `##_`
 2. In each file replaces `{schema}` token with your schema name
 3. Copies transformed files into `temp\` folder
-4. Plays scripts in numeric order ascending at the postgres instance and database in the connection string
-5. Queue is ready for use
+4. Execute scripts in numeric order ascending at the postgres instance and database in the connection string
+5. When done, the queue is ready for use
 
 This will create the objects in [schema](./SCHEMA.md) and the default [configuration](./CONFIG.md).
 
+With empty tables, except the lookup tables of:
+
+- [Configuration Settings](../data/sql/700_queue_configuration_Data.sql)
+- [Message States](../data/sql/702_message_state_Data.sql)
+
+It will also setup the [CRON jobs](./PEQ_ADMIN.md#scheduled-jobs)
+
 ## How to use your Queue
 
-See: [Use your Queue](./USE_QUEUE.md)
+This of course, why we made it in the first place. See: [Use your Queue](./USE_QUEUE.md)
 
 [^Home](../README.md)
