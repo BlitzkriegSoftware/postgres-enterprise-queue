@@ -1,7 +1,9 @@
 -- Test post queue deployment
 -- DO NOT RUN ON A LIVE QUEUE
 -- 
-CREATE OR REPLACE PROCEDURE {schema}.post_deploy_test()
+CREATE OR REPLACE PROCEDURE {schema}.post_deploy_test(
+    test_flag integer DEFAULT 2    
+)
 LANGUAGE 'plpgsql'
 AS $BODY$
 
@@ -34,7 +36,10 @@ DECLARE
 
 BEGIN
     -- clean start
-    call {schema}.reset_queue();
+    IF test_flag > 0 THEN
+        call {schema}.reset_queue();
+        RAISE NOTICE 'Reset Tables';
+    END IF;
 
     --
     -- Create some test messages
@@ -110,7 +115,10 @@ BEGIN
     END LOOP;
 
     -- Reset is desirable
-    call {schema}.reset_queue();
+    IF test_flag > 1 THEN
+        call {schema}.reset_queue();
+        RAISE NOTICE 'Reset Tables';
+    END IF;
 
     --
     -- Test Results
