@@ -33,6 +33,14 @@ Here are the documents for Postgres Enterprise Queues (PEQ)
 > Horrible work arounds, if you have a better way, create an issue, or put in a PR
 > It works though.
 
+## open a bash shell on Postgres container
+
+```powershell
+.\bash-pg.ps1
+```
+
+It opens a bash shell...
+
 ## stop postgres
 
 ```powershell
