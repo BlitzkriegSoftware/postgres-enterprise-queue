@@ -4,7 +4,7 @@ Messages have the following finite state diagram
 
 ## Diagram
 
-<img src='./MESSAGE_LIFECYCLE.png' width='600px'>
+<img src='./MESSAGE_LIFECYCLE.png' width='800px'>
 
 ## Discussion
 
