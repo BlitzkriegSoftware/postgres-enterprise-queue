@@ -116,11 +116,17 @@ call {schema}.message_ack(msg_id, client_id, 'ack');
 
 ### (2) NAK (Can't complete)
 
-The unit of work can not be processed successfully, and some other client should process it. This is also what happens if the message times out (see the discussion below on )
+The unit of work cannot be processed successfully, and some other client should process it. 
+
+This is also what happens if the message times out (lease expires). 
+
+See the discussion below on [Nak](./USE_QUEUE.md#too-many-naks-or-lease-expired-events).
 
 ```sql
-call {schema}.message_nak(msg_id, client_id, 'uow fail');
+call {schema}.message_nak(msg_id, client_id, reason_why);
 ```
+
+> Please pass a detailed `reason_why` as an explaination as it will flow into the audit. 
 
 ### (3) REJ (Reject)
 
