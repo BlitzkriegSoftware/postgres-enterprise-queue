@@ -34,6 +34,14 @@ select b.msg_id, b.expires, b.msg_json
     from test01.dequeue(client_id, lease_duration) as b;
 ```
 
+This fetches these fields:
+
+- `msg_id`: UUID {GUID} unique id of message
+- `expires`: When does the lease expire?
+- `msg_json`: The JSON payload of the message
+
+Some notes on the arguments:
+
 - The client_id should be a unique value across all the instances that use this queue
 
   - Worse case, you can use a GUID (uuid)
@@ -55,6 +63,8 @@ All of them have 3 arguments:
 ### ACK (Completed)
 
 The unit of work expressed by the message was completed successfully, the message is moved to history.
+
+> This is the happy path.
 
 ```sql
 call {schema}.message_ack(msg_id, client_id, 'ack');
