@@ -1,8 +1,18 @@
 # Message lifecycle
 
-Messages have the following finite state diagram
+- [Message lifecycle](#message-lifecycle)
+  - [Diagram](#diagram)
+  - [Discussion](#discussion)
+  - [Paths](#paths)
+    - [Happy Path](#happy-path)
+    - [Semi-Happy Path](#semi-happy-path)
+    - [Bad Message Path](#bad-message-path)
+  - [Abandoned Messages (Really unhappy path)](#abandoned-messages-really-unhappy-path)
+  - [Data Retention Events](#data-retention-events)
 
 ## Diagram
+
+Messages have the following finite state diagram
 
 <img src='./MESSAGE_LIFECYCLE.png' width='800px'>
 

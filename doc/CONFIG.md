@@ -1,8 +1,15 @@
-# Configuring the new PEQ
+# Configuring the new Postgres Enterprise Queue (PEQ)
 
-> PEQ: Postgres Enterprise Queue
+- [Configuring the new Postgres Enterprise Queue (PEQ)](#configuring-the-new-postgres-enterprise-queue-peq)
+  - [Where the configuration is](#where-the-configuration-is)
+  - [The Configuration Schema](#the-configuration-schema)
+    - [Warnings](#warnings)
+  - [What the configuration settings do](#what-the-configuration-settings-do)
+  - [Backoff formula for retries](#backoff-formula-for-retries)
+    - [Example Delays](#example-delays)
+    - [Sidebar: Why Jitter?](#sidebar-why-jitter)
+    - [Important](#important)
 
-It is useful to read the base [README](../README.md) and [MESSAGE_LIFECYCLE](/src/MESSAGE_LIFECYCLE.md)
 
 ## Where the configuration is
 
@@ -93,23 +100,5 @@ It helps avoid collisions in cases where the message processing (consumer) is tr
 ### Important
 
 Before changing the backoff settings, we strongly suggest using the enclosed [XLSX](./backoff_table.xlsx) to model the impact. Also, consider, if a unit of work can't be completed after 5 tries over approx. 15 minutes, that something else is terriblely wrong.
-
-## Cron
-
-Copied from [pg_cron](https://github.com/citusdata/pg_cron/blob/main/README.md?plain=1)
-
-```
- ┌───────────── min (0 - 59)
- │ ┌────────────── hour (0 - 23)
- │ │ ┌─────────────── day of month (1 - 31) or last day of the month ($)
- │ │ │ ┌──────────────── month (1 - 12)
- │ │ │ │ ┌───────────────── day of week (0 - 6) (0 to 6 are Sunday to
- │ │ │ │ │                  Saturday, or use names; 7 is also Sunday)
- │ │ │ │ │
- │ │ │ │ │
- * * * * *
-```
-
-An easy way to create a cron schedule is: [crontab.guru](http://crontab.guru/).
 
 [<--- Start Here](./README.md)

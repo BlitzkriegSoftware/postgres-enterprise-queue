@@ -42,7 +42,7 @@ BEGIN
     END IF;
 
     --
-    -- Create some test messages
+    -- Create some test messages - The PRODUCER
     loop_count := 0;
     loop
         exit when loop_count >= max_recs;
@@ -59,7 +59,7 @@ BEGIN
         RAISE NOTICE 'Post create messages counts are odd. Expected: %, Actual: %', loop_count, audit_count_post;
     END IF;
 
-    -- do some tests
+    -- The CONSUMER
     loop_count := 0;
     loop
         exit when loop_count >= test_iteration_max;
@@ -68,6 +68,9 @@ BEGIN
         select count(*)
             into audit_count
             from {schema}.message_audit;
+
+        --
+        -- Unit of Work Begin
 
         select b.msg_id, b.expires, b.msg_json 
             into msg_id, ts, msg_json 
@@ -92,15 +95,16 @@ BEGIN
 
         BEGIN
 
+            -- Randomly decide the outcome of our UoW (to simulate processing)
             SELECT random_value into die_roll from {schema}.random_between(1, 100);
             IF die_roll < 10 THEN
-                RAISE NOTICE '   REJ';
+                RAISE NOTICE '   REJ'; -- 3
                 call {schema}.message_rej(msg_id, client_id, 'bad format');
-            ELSIF die_roll > 80 THEN
-                RAISE NOTICE '   NAK';
+            ELSIF die_roll < 30 THEN
+                RAISE NOTICE '   NAK'; -- 2
                 call {schema}.message_nak(msg_id, client_id, 'uow fail');
             ELSE
-                RAISE NOTICE '   ACK';
+                RAISE NOTICE '   ACK'; -- 1
                 call {schema}.message_ack(msg_id, client_id, 'ack');
             END IF;
 
@@ -111,6 +115,9 @@ BEGIN
                 test_result := 1;
 
         END;
+
+        -- Unit of Work END
+        --
 
     END LOOP;
 

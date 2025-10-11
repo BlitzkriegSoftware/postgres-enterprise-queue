@@ -1,9 +1,35 @@
 # Administration of PEQ
 
-See Also:
-* [Schema](./SCHEMA.md)
-* [Message Lifecycle](./MESSAGE_LIFECYCLE.md)
+- [Administration of PEQ](#administration-of-peq)
+  - [Cron](#cron)
+  - [Scheduled Jobs](#scheduled-jobs)
+  - [CRON Execution History](#cron-execution-history)
+  - [CRON Procedures](#cron-procedures)
+    - [cron\_clean\_message\_queue](#cron_clean_message_queue)
+    - [cron\_unlock](#cron_unlock)
+    - [cron\_history\_clean](#cron_history_clean)
+    - [cron\_audit\_clean](#cron_audit_clean)
+    - [cron\_dead\_letter\_retention](#cron_dead_letter_retention)
+  - [Reseting all DATA in the queue system](#reseting-all-data-in-the-queue-system)
 
+
+## Cron
+
+Copied from [pg_cron](https://github.com/citusdata/pg_cron/blob/main/README.md?plain=1)
+
+```
+ ┌───────────── min (0 - 59)
+ │ ┌────────────── hour (0 - 23)
+ │ │ ┌─────────────── day of month (1 - 31) or last day of the month ($)
+ │ │ │ ┌──────────────── month (1 - 12)
+ │ │ │ │ ┌───────────────── day of week (0 - 6) (0 to 6 are Sunday to
+ │ │ │ │ │                  Saturday, or use names; 7 is also Sunday)
+ │ │ │ │ │
+ │ │ │ │ │
+ * * * * *
+```
+
+An easy way to create a cron schedule is: [crontab.guru](http://crontab.guru/).
 ## Scheduled Jobs
 
 ```sql

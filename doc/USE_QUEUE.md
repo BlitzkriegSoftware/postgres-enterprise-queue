@@ -1,5 +1,20 @@
 # How to use your queue
 
+- [How to use your queue](#how-to-use-your-queue)
+  - [Nice demo](#nice-demo)
+  - [What is a unit-of-work?](#what-is-a-unit-of-work)
+  - [Enqueue item](#enqueue-item)
+  - [Dequeue Items](#dequeue-items)
+  - [Unit of Work Observations](#unit-of-work-observations)
+    - [ACK (Completed)](#ack-completed)
+    - [NAK (Can't complete)](#nak-cant-complete)
+    - [REJ (Reject)](#rej-reject)
+  - [Rescheduling a message](#rescheduling-a-message)
+  - [Tracing what happened to your messages? The Audit](#tracing-what-happened-to-your-messages-the-audit)
+
+
+## Nice demo
+
 There is nice example of the unit of work pattern and basic queue usage in the SQL file [Post Deployment Test](../data/sql/901_post_deploy_test.sql).
 
 ## What is a unit-of-work?
@@ -69,7 +84,7 @@ Some notes on the arguments:
 
 ## Unit of Work Observations
 
-The unit of work must be completed in less time than the `lease_duration` e.g. by the TIMESTAMP returned as `expires` or subsequent calls to ACK, NAK, or REJ will fail as technically, the client does not "own" the work item any more so the system has effectively done an "auto-NAK". This mechanism is baked into the `dequeue()` procedure, but also part of the scheduled cron job [cron_unlock](../data/sql/520_cron_unlock.sql) which matches the 'lease expired' event in the diagram above.
+The unit of work (UoW) execution must be completed in less time than the `lease_duration` e.g. by the TIMESTAMP returned as `expires` or subsequent calls to ACK, NAK, or REJ will fail as technically, the client does not "own" the work item any more so the system has effectively done an "auto-NAK". This mechanism is baked into the `dequeue()` procedure, but also part of the scheduled cron job [cron_unlock](../data/sql/520_cron_unlock.sql) which matches the 'lease expired' event in the diagram above.
 
 > Again, if the calls to the completion events fail, increase the `lease_duration` AND/OR investigate why the UoW itself is taking so long to process. The default of 30 seconds is a long time to process anything in computer time.
 

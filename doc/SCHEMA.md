@@ -1,5 +1,16 @@
 # Enterprise Message Schema
 
+- [Enterprise Message Schema](#enterprise-message-schema)
+  - [Schema (the most important thing)](#schema-the-most-important-thing)
+  - [Role](#role)
+  - [Tables](#tables)
+  - [Stored Procedures and Functions](#stored-procedures-and-functions)
+
+See also: 
+- [Message Lifecycle](./MESSAGE_LIFECYCLE.md)
+- [Configuration](./CONFIG.md)
+- [Adminstration](./PEQ_ADMIN.md)
+
 ## Schema (the most important thing)
 
 Each queue gets its own schema, delete the schema deletes the queue and all of its history, dead-letters, audit, procedures, functions, etc.
