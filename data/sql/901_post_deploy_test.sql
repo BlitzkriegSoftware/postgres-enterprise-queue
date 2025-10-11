@@ -46,8 +46,8 @@ BEGIN
     end loop;
 
     select count(*)
-    into audit_count_post
-    from {schema}.message_audit;
+        into audit_count_post
+        from {schema}.message_audit;
 
     IF audit_count_post <> loop_count THEN
         test_bad := test_bad + 1;
@@ -102,6 +102,9 @@ BEGIN
         EXCEPTION
             WHEN OTHERS THEN
                 RAISE NOTICE 'An unknown error occurred: %', SQLERRM;
+                test_bad := test_bad + 1;
+                test_result := 1;
+
         END;
 
     END LOOP;
