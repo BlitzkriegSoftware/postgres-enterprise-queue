@@ -14,6 +14,10 @@ INSERT INTO {schema}.message_state(
 
 INSERT INTO {schema}.message_state(
 	message_state_id, state_title, is_fsm)
+	VALUES (32, 'history recovered', false);
+
+INSERT INTO {schema}.message_state(
+	message_state_id, state_title, is_fsm)
 	VALUES (4, 'rescheduled', false);
 	
 INSERT INTO {schema}.message_state(
@@ -27,6 +31,10 @@ INSERT INTO {schema}.message_state(
 INSERT INTO {schema}.message_state(
 	message_state_id, state_title, is_fsm)
 	VALUES (7, 'dead-letter', false);
+
+INSERT INTO {schema}.message_state(
+	message_state_id, state_title, is_fsm)
+	VALUES (72, 'dead-letter-recovered', false);
 
 INSERT INTO {schema}.message_state(
 	message_state_id, state_title, is_fsm)

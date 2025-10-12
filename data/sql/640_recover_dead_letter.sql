@@ -1,11 +1,11 @@
-DROP FUNCTION IF EXISTS {schema}.replay_message_from_history.(uuid, varchar);
+DROP FUNCTION IF EXISTS {schema}.recover_dead_letter(uuid, varchar);
 
-CREATE OR REPLACE FUNCTION {schema}.replay_message_from_history.(
+CREATE OR REPLACE FUNCTION {schema}.recover_dead_letter(
     IN msg_id uuid DEFAULT uuid_generate_v4(),
     IN delay_seconds integer DEFAULT 0,
     IN recovered_by varchar DEFAULT 'system',
     IN item_ttl integer DEFAULT 0
-    IN reason_why varchar DEFAULT 'history recovered.'
+    IN reason_why varchar DEFAULT 'dead letter recovered.'
 )
 RETURNS  record
     LANGUAGE 'plpgsql'
@@ -22,16 +22,16 @@ DECLARE
 
 BEGIN
     select
-        mh.message_json
+        dl.message_json
     into 
         message_json
     from
-        {schema}.message_history mh
+        {schema}.dead_letter dl
     where
-        mh.message_id = msg_id;
+        dl.message_id = msg_id;
 
     IF (message_json is null) THEN
-        RAISE EXCEPTION 'No Message History found with Id: %', msg_id;
+        RAISE EXCEPTION 'No Dead Letter found with Id: %', msg_id;
     ELSE
         call {schema}.enqueue(msg_json, message_id_new, delay_seconds, recovered_by, item_ttl);
         reason_why_new := reason_why_new || ' Previous uuid: ' || cast(msg_id as varchar);
@@ -41,5 +41,5 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION {schema}.replay_message_from_history.(uuid, varchar)
+ALTER FUNCTION {schema}.recover_dead_letter(uuid, varchar)
     OWNER TO postgres;
