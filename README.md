@@ -4,6 +4,7 @@
   - [Enterprise Queuing](#enterprise-queuing)
   - [Start Postgres and install cron \& pg\_cron](#start-postgres-and-install-cron--pg_cron)
     - [What does it do?](#what-does-it-do)
+    - [Docker Postgres SQL Connection String](#docker-postgres-sql-connection-string)
   - [open a bash shell on Postgres container](#open-a-bash-shell-on-postgres-container)
   - [stop postgres](#stop-postgres)
     - [What it does](#what-it-does)
@@ -43,6 +44,12 @@ Here are the documents for Postgres Enterprise Queues (PEQ)
 
 > Horrible work arounds, if you have a better way, create an issue, or put in a PR
 > It works though.
+
+### Docker Postgres SQL Connection String
+
+```text
+postgresql://postgres:password123-@localhost:5432/postgres
+```
 
 ## open a bash shell on Postgres container
 
