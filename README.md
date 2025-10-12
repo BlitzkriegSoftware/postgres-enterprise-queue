@@ -22,6 +22,7 @@ Here are the documents for Postgres Enterprise Queues (PEQ)
 - [Adminstration](./doc/PEQ_ADMIN.md)
 - [Configuration](./doc/CONFIG.md)
 - [Use the Queue](./doc/USE_QUEUE.md)
+- [FAQ](./doc/FAQ.md)
 
 ## Start Postgres and install cron & pg_cron
 

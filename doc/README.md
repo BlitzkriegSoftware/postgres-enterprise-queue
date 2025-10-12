@@ -15,6 +15,7 @@
 - [Adminstration](./PEQ_ADMIN.md)
 - [Configuration](./CONFIG.md)
 - [Use the Queue](./USE_QUEUE.md)
+- [FAQ](./FAQ.md)
 
 ## Generate an enterprise queue
 
