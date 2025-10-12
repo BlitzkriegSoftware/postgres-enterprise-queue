@@ -1,16 +1,14 @@
-DROP FUNCTION IF EXISTS {schema}.recover_dead_letter(uuid, varchar);
+DROP PROCEDURE IF EXISTS {schema}.recover_dead_letter(uuid, integer, varchar, integer, varchar);
 
-CREATE OR REPLACE FUNCTION {schema}.recover_dead_letter(
+CREATE OR REPLACE PROCEDURE {schema}.recover_dead_letter(
     IN msg_id uuid DEFAULT uuid_generate_v4(),
     IN delay_seconds integer DEFAULT 0,
     IN recovered_by varchar DEFAULT 'system',
-    IN item_ttl integer DEFAULT 0
+    IN item_ttl integer DEFAULT 0,
     IN reason_why varchar DEFAULT 'dead letter recovered.'
 )
-RETURNS  record
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
+LANGUAGE 'plpgsql'
+
 AS $$
 
 DECLARE
@@ -33,13 +31,15 @@ BEGIN
     IF (message_json is null) THEN
         RAISE EXCEPTION 'No Dead Letter found with Id: %', msg_id;
     ELSE
-        call {schema}.enqueue(msg_json, message_id_new, delay_seconds, recovered_by, item_ttl);
-        reason_why_new := reason_why_new || ' Previous uuid: ' || cast(msg_id as varchar);
-        call {schema}.add_audit(message_id_new, 72, recovered_by, reason_why_new);
+        call {schema}.enqueue(message_json, message_id_new, delay_seconds, recovered_by, item_ttl);
+        reason_why_new := reason_why || ' Previous uuid: ' || cast(msg_id as varchar);
+        call {schema}.add_audit(message_id_new, 32, recovered_by, reason_why_new);
+        reason_why_new := reason_why || ' New uuid: ' || cast(message_id_new as varchar);
+        call {schema}.add_audit(msg_id, 32, recovered_by, reason_why_new);
     END IF;
 
 END;
 $$;
 
-ALTER FUNCTION {schema}.recover_dead_letter(uuid, varchar)
+ALTER PROCEDURE {schema}.recover_dead_letter(uuid, integer, varchar, integer, varchar)
     OWNER TO postgres;
