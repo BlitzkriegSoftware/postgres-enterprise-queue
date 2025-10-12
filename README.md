@@ -33,17 +33,28 @@ Here are the documents for Postgres Enterprise Queues (PEQ)
 
 ### What does it do?
 
-1. Creates a custom variation of Psotgres from `Dockerfile`
-2. Adds in plugins we want (see file above)
-3. Configures plugins
-4. Starts container running, which starts base postgres
-5. Reconfigures postgres
-6. Restarts postgres
-7. Finishes up
-8. Postgres w. plugins ready for use
+1. Creates a custom variation of **posgres** from `Dockerfile`, Adds in plugins we want (see file above), Configures plugins 
 
-> Horrible work arounds, if you have a better way, create an issue, or put in a PR
-> It works though.
+2. Starts container running, which starts base postgres
+
+3. Reconfigures postgres + Restarts postgres, via:
+
+```bash
+./data/configure_pg.sh
+```
+
+4. Finishes up by running SQL script:
+
+```bash
+./data/pg_cron_add.sh
+```
+
+5. Postgres w. plugins ready for use
+
+
+Notes:
+* Horrible work arounds, if you have a better way, create an issue, or put in a PR
+* It works though.
 
 ### Docker Postgres SQL Connection String
 
@@ -61,12 +72,12 @@ It opens a bash shell...with handy guidance
 
 ```text
 SQL Scripts Folder: /var/lib/postgresql/data
-  su -- postgres -c {pg_command}
-Postgres Utilities Folder: /usr/lib/postgresql/16/bin
 Postgres Logs: /var/log/postgresql
-root@248bcee33ea9:/var/lib/postgresql/data#
+Postgres Utilities Folder: /usr/lib/postgresql/16/bin
+In general to run postgres commands you will have to run as the 'postgres' user
+su -- postgres -c {pg_command}
+root@9022c51945a7:/var/lib/postgresql/data# 
 ```
-
 
 ## stop postgres
 
