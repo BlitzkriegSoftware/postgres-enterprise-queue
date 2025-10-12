@@ -1,1 +1,2 @@
--- Role is future
+-- Role is future 
+-- {rolename} is replaced

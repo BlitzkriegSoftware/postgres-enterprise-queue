@@ -51,9 +51,9 @@ Arguments:
 
 ### Make-Queue: What does it do?
 
-1. Takes the schema in `sql\` that state with `##_`
-2. In each file replaces `{schema}` token with your schema name
-3. Copies transformed files into `temp\` folder
+1. Takes the schema in `sql\` that start with `##_`, starting at the minimum index of *110* inclusive
+2. In each file replaces `{schema}` token with your schema name, and `{rolename}` with your role name
+3. Copies transformed files into `temp\` folder which is emptied first
 4. Execute scripts in numeric order ascending at the postgres instance and database in the connection string
 5. When done, the queue is ready for use
 
