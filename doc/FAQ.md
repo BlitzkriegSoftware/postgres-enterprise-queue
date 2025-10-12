@@ -17,3 +17,4 @@ An entprise queue:
 
 * It has all the features we need, look at the code for [dequeue](../data/sql/420_dequeue.sql), especially the use of a Common-Table-Expression (CTE) with `FOR UPDATE SKIP LOCKED` clause which is the magic that exclusively allows the selection of one message via `LIMIT 1`.
 
+[<--- Start Here](./README.md)
