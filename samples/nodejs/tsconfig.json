@@ -1,9 +1,14 @@
+
 {
   "compilerOptions": {
-    "target": "esnext",
     "module": "commonjs",
-    "allowImportingTsExtensions": true,
-    "rewriteRelativeImportExtensions": true,
-    "verbatimModuleSyntax": true
-  }
+    "esModuleInterop": true,
+    "target": "es6",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "outDir": "dist",
+    "forceConsistentCasingInFileNames": true,
+    "strict": true
+  },
+  "lib": ["es2015"]
 }
