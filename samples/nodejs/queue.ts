@@ -108,8 +108,12 @@ export class QueueError extends Error {
   }
 }
 
+/**
+ * The Postgres Enterprise Queue - NodeJs Wrapper
+ * @class
+ */
 export class PEQ {
-  
+
   /**
    * @field
    * Connection String - To Postgres SQL Server
