@@ -1,4 +1,6 @@
 import type crypto = require('crypto');
+import type Guid = require('./Guid.ts');
+
 import * as pg from 'pg';
 
 export type QueueItem = {
@@ -6,6 +8,8 @@ export type QueueItem = {
     Expires: Date,
     Message: JSON
 };
+
+export const emptyGuid: string = "00000000-0000-0000-0000-000000000000";
 
 export class PEQ {
 
@@ -69,7 +73,7 @@ export class PEQ {
   }
 
   dequeue() : QueueItem {
-
+    msg_id: 
   }
 
   ack() {}
