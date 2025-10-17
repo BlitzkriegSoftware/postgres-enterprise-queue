@@ -5,7 +5,8 @@ import * as pg from 'pg';
  * Default connection string - the demo docker one
  * @constant
  */
-export const defaultConnectionString = 'postgresql://postgres:password123-@localhost:5432/postgres';
+export const defaultConnectionString =
+  'postgresql://postgres:password123-@localhost:5432/postgres';
 
 /**
  * Default Schema Name
@@ -85,7 +86,7 @@ export enum QueueErrorCode {
   BadField,
   NoMessageAvailable,
   LeaseExpired,
-  InvalidClientId,
+  InvalidClientId
 }
 
 /**
@@ -113,7 +114,6 @@ export class QueueError extends Error {
  * @class
  */
 export class PEQ {
-
   /**
    * @field
    * Connection String - To Postgres SQL Server
@@ -199,17 +199,23 @@ export class PEQ {
     who_by: string = defaultUser,
     item_ttl: number = 0
   ): string {
-    if(JSON.stringify(msg_json).length < minJsonSize) {
-      throw new QueueError('JSON Payload invalid (small)', QueueErrorCode.BadJson);
+    if (JSON.stringify(msg_json).length < minJsonSize) {
+      throw new QueueError(
+        'JSON Payload invalid (small)',
+        QueueErrorCode.BadJson
+      );
     }
-    if (!PEQ.isValidUuid(message_id)) {
+    if (!PEQ.isValidUuid(message_id) || message_id == emptyGuid) {
       message_id = uuidv4();
     }
-    if(PEQ.isBlank(who_by)) {
+    if (PEQ.isBlank(who_by)) {
       who_by = defaultUser;
     }
-    if(item_ttl <= 0) {
-      throw new QueueError('item_ttl must be reasonable number of minutes', QueueErrorCode.BadField);
+    if (item_ttl <= 0) {
+      throw new QueueError(
+        'item_ttl must be reasonable number of minutes',
+        QueueErrorCode.BadField
+      );
     }
 
     return message_id;
@@ -230,10 +236,12 @@ export class PEQ {
     let expires: Date = new Date();
     let msg_json: JSON = JSON.parse('{}');
 
-    if(PEQ.isBlank(client_id)) {
-      throw new QueueError('Bad Client Id (too small)', QueueErrorCode.InvalidClientId);
+    if (PEQ.isBlank(client_id)) {
+      throw new QueueError(
+        'Bad Client Id (too small)',
+        QueueErrorCode.InvalidClientId
+      );
     }
-    
 
     return {
       msg_id: message_id,
@@ -246,7 +254,7 @@ export class PEQ {
    * Ack - Unit of Work - Success - To History
    * @name #ack
    * @function
-   * @param message_id {string} - valid UUID/GUID 
+   * @param message_id {string} - valid UUID/GUID
    * @param who_by {string}
    * @param reason_why {string}
    */
@@ -269,7 +277,7 @@ export class PEQ {
   /**
    * Nak - Unit of Work - Can't Finish - Short Reschedule
    * @function
-   * @param message_id {string} - valid UUID/GUID 
+   * @param message_id {string} - valid UUID/GUID
    * @param who_by {string}
    * @param reason_why {string}
    */
@@ -292,7 +300,7 @@ export class PEQ {
   /**
    * Rej - Unit of Work - Bad Message - To Dead Letter
    * @function
-   * @param message_id {string} - valid UUID/GUID 
+   * @param message_id {string} - valid UUID/GUID
    * @param who_by {string}
    * @param reason_why {string}
    */
@@ -316,7 +324,7 @@ export class PEQ {
    * RSH - Unit of Work - Long Reschedule
    * @name #rsh
    * @function
-   * @param message_id {string} - valid UUID/GUID 
+   * @param message_id {string} - valid UUID/GUID
    * @param delay_seconds {number} - seconds to delay processing the message
    * @param who_by {string}
    * @param reason_why {string}
@@ -347,7 +355,7 @@ export class PEQ {
    * @returns {boolean} - if schema contains a queue
    */
   queueExists(): boolean {
-       let flag: boolean = false;
+    let flag: boolean = false;
 
     return flag;
   }
@@ -355,12 +363,11 @@ export class PEQ {
   /**
    * Checks to see if there are messages
    * @function
-   * @returns {boolean} - if there are messages 
+   * @returns {boolean} - if there are messages
    */
   hasMessages(): boolean {
     let flag: boolean = false;
 
     return flag;
   }
-
 }
