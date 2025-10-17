@@ -341,4 +341,26 @@ export class PEQ {
     }
   }
 
+  /**
+   * Queue Exists
+   * @function
+   * @returns {boolean} - if schema contains a queue
+   */
+  queueExists(): boolean {
+       let flag: boolean = false;
+
+    return flag;
+  }
+
+  /**
+   * Checks to see if there are messages
+   * @function
+   * @returns {boolean} - if there are messages 
+   */
+  hasMessages(): boolean {
+    let flag: boolean = false;
+
+    return flag;
+  }
+
 }
