@@ -2,7 +2,6 @@
 /**
  * Requires
  */
-import * as pg from 'pg';
 import { checkPort } from './checkPort';
 import { v4 as uuidv4 } from 'uuid';
 import { describe, test, expect } from '@jest/globals';
@@ -35,11 +34,11 @@ beforeAll(async () => {
 }, 1000);
 
 describe('uow', () => {
-  
+
   test('enqueue', async () => {
     let isOk = true;
 
-    for (let i: number = 0; i < item_count; i++) {
+    for (let i = 0; i < item_count; i++) {
       try {
         const id = await queue.enqueue(empty_msg, emptyGuid, 0, client_id);
         console.log(`enqueued ${id}`);
