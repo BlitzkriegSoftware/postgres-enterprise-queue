@@ -110,6 +110,7 @@ docker build --progress=plain -t "${CUSTOM_IMAGE}" .
 docker run -d `
 	-e "POSTGRES_USER=${USERNAME}" `
 	-e "POSTGRES_PASSWORD=${PASSWORD}" `
+	-e "PGPASSWORD=${PASSWORD}" `
 	-e "PGPASSFILE=${PGPASS_FILE}" `
 	-e PGDATA='/var/lib/postgresql/data/pgdata' `
 	--name="${NAME}" `
