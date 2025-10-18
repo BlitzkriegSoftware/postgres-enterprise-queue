@@ -34,7 +34,7 @@ function Get-PortBlocked {
 
 	$inUse = Test-NetConnection localhost -Port 5432
 
-	if (($null -eq $inUse) -or ($inUse.TcpTestSucceeded)) {
+	if (($null -eq $inUse) -or (-not $inUse.TcpTestSucceeded)) {
 		$flag = $true;
 	}
 
@@ -69,9 +69,9 @@ if (! $da) {
 	return 1;
 }
 
-[bool]$isBlocked = Get-PortBlocked -Port 5432;
+[bool]$isBlocked = Get-PortBlocked -Port $PORT;
 if ($isBlocked) {
-	Write-Error "Port for postgres is in use! Stop local service before re-running."
+	Write-Error "Port ${PORT} for postgres is in use! Stop local service before re-running."
 	return 2;
 }
 
