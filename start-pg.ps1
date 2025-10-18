@@ -16,14 +16,14 @@ Import-Module Microsoft.PowerShell.Utility
 
 [int]$PORT = 5432
 [string]$SERVER = "localhost"
+[string]$CUSTOM_IMAGE = 'postgres_cron'
 [string]$NAME = 'postgressvr'
-[string]$BIN = '/usr/lib/postgresql/16/bin'
 [string]$MASTERDB = 'postgres'
 [string]$USERNAME = 'postgres'
 [string]$PASSWORD = 'password123-'
+[string]$BIN = '/usr/lib/postgresql/16/bin'
 [string]$VOL = "/var/lib/postgresql/data"
 [string]$PGPASS_FILE = '/var/lib/postgresql/data/.pgpass'
-[string]$CUSTOM_IMAGE = 'postgres_cron'
 
 function Get-DockerRunning {
 
