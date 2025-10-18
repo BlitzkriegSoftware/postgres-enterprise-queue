@@ -18,7 +18,8 @@ import {
 } from './queue';
 import { getRandomInt } from './getRandomInt';
 
-const item_count = 5;
+const test_timeout = 90000;
+const item_count = 25;
 const empty_msg = '{}';
 
 /**
@@ -34,7 +35,7 @@ const client_id = uuidv4();
 /**
  * Increase test time
  */
-setDefaultTimeout(5000);
+setDefaultTimeout(test_timeout);
 
 /**
  * Reset Queue in between tests
@@ -56,28 +57,14 @@ beforeEach(async () => {
 
 // });
 
-test('enqueue', async () => {
-  let isOk = true;
-
-  for (let i = 0; i < item_count; i++) {
-    try {
-      const id = await queue.enqueue(
-        empty_msg,
-        emptyGuid,
-        0,
-        client_id,
-        defaultMessageTtl
-      );
-      console.log(`enqueued ${id}`);
-    } catch (error) {
-      console.log(error);
-      isOk = false;
-    }
-  }
+test('queueExists', async () => {
+  const isOk = await queue.queueExists();
   expect(isOk).toBe(true);
+});
 
-  isOk = await queue.hasMessages();
-  expect(isOk).toBe(true);
+test('error', async () => {
+  const error = new QueueError('test', QueueErrorCode.BadField);
+  expect(error.queueErrorCode).toBe(QueueErrorCode.BadField);
 });
 
 test('uow', async () => {
@@ -98,10 +85,15 @@ test('uow', async () => {
     }
   }
 
+  const hasMessages = await queue.hasMessages();
+  expect(hasMessages).toBe(true);
+
   for (let i = 0; i < item_count; i++) {
     try {
       var qi = await queue.dequeue(client_id, defaultLeaseSeconds);
-      console.log(`${qi.msg_id}, ${qi.expires}, ${JSON.stringify(qi.msg_json)}`);
+      console.log(
+        `${qi.msg_id}, ${qi.expires}, ${JSON.stringify(qi.msg_json)}`
+      );
       const die_roll = getRandomInt(1, 100);
       if (die_roll < 20) {
         await queue.rej(qi.msg_id, client_id, 'REJ-Test');

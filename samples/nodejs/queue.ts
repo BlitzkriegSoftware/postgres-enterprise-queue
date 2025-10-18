@@ -180,17 +180,6 @@ export class PEQ {
   }
 
   /**
-   * Tests to see if passed argument is a number
-   * @name #isNumber
-   * @function
-   * @param {*} value
-   * @returns {boolean}
-   */
-  static isNumber(value: any) {
-    return typeof value === 'number';
-  }
-
-  /**
    * Validate a string is a valid UUID/GUID
    * @name #isValidUuid
    * @function
