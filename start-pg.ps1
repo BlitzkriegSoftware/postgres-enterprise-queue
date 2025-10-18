@@ -104,7 +104,7 @@ $null = (Remove-Item -Path $pgDir -Recurse -Force) 2> $null
 
 # Ensure clean pull of pinned image
 #$null = (docker pull $IMAGE) 2> $null
-docker build -t "${CUSTOM_IMAGE}" .
+docker build --progress=plain -t "${CUSTOM_IMAGE}" .
 
 # Start the container
 docker run -d `
