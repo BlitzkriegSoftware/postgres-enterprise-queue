@@ -1,4 +1,4 @@
-FROM postgres:16-trixie
+FROM postgres:16.9-trixie
 RUN apt update -y
 RUN apt upgrade -y
 RUN apt install curl ca-certificates cron -y
