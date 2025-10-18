@@ -45,6 +45,12 @@ export const defaultUser: string = 'system';
 export const defaultLeaseSeconds: number = -1;
 
 /**
+ * Default Message TTL
+ * @constant
+ */
+export const defaultMessageTtl: number = 4320;
+
+/**
  * Minumum size of a JSON payload
  * @constant
  */
@@ -120,7 +126,6 @@ export class QueueError extends Error {
  * @class
  */
 export class PEQ {
-  
   /**
    * @field
    * Connection String - To Postgres SQL Server
@@ -199,6 +204,22 @@ export class PEQ {
   }
 
   /**
+   * quoteIt - puts Postgres single-quotes around a string
+   * @param text
+   * @returns
+   */
+  static quoteIt(text: string): string {
+    if (text === null) {
+      text = '';
+    }
+    text = text.trim();
+    if (!text.startsWith("'") || !text.endsWith("'")) {
+      text = "'" + text + "'";
+    }
+    return text;
+  }
+
+  /**
    * Enqueue a message
    * @name #enqueue
    * @param msg_json {JSON}
@@ -209,24 +230,43 @@ export class PEQ {
    * @returns {string} - the computed message_id
    */
   async enqueue(
-    msg_json: JSON,
+    msg_json: string | JSON,
     message_id: string = uuidv4(),
     delay_seconds: number = 0,
     who_by: string = defaultUser,
-    item_ttl: number = 0
+    item_ttl: number = defaultMessageTtl
   ): Promise<string> {
-    if (JSON.stringify(msg_json).length < minJsonSize) {
+    let json: string = '';
+    let json_length: number = 0;
+
+    if (typeof msg_json === 'string') {
+      json = msg_json;
+    } else {
+      try {
+        json = JSON.stringify(msg_json);
+      } catch (error) {
+        throw new QueueError(
+          `Not valid json, error: ${error}`,
+          QueueErrorCode.BadJson
+        );
+      }
+    }
+    json_length = json.length;
+    if (json_length < minJsonSize) {
       throw new QueueError(
         'JSON Payload invalid (small)',
         QueueErrorCode.BadJson
       );
     }
+
     if (!PEQ.isValidUuid(message_id) || message_id == emptyGuid) {
       message_id = uuidv4();
     }
+
     if (PEQ.isBlank(who_by)) {
       who_by = defaultUser;
     }
+
     if (item_ttl <= 0) {
       throw new QueueError(
         'item_ttl must be reasonable number of minutes',
@@ -234,12 +274,7 @@ export class PEQ {
       );
     }
 
-    // IN message_json json,
-    // IN message_id uuid DEFAULT uuid_generate_v4(),
-    // IN delay_seconds integer DEFAULT 0,
-    // IN created_by character varying DEFAULT 'system'::character varying,
-    // in item_ttl integer DEFAULT 0
-    const sql = `call ${this.schemaName}.enqueue(${msg_json}, ${message_id}, ${delay_seconds}, ${who_by}, ${item_ttl});`;
+    const sql = `call ${this.schemaName}.enqueue(${PEQ.quoteIt(json)}, ${PEQ.quoteIt(message_id)}, ${delay_seconds}, ${PEQ.quoteIt(who_by)}, ${item_ttl});`;
     const result = await this.doQuery(sql);
 
     return message_id;
@@ -430,9 +465,10 @@ export class PEQ {
     let flag: boolean = false;
     const sql = `select count(1) as CT from ${this.schemaName}.message_queue;`;
     const result = await this.doQuery(sql);
-    let ct = result.rows[0].CT;
+    let ct: number = result.rows[0].ct;
+    console.log(`Count: ${ct}`);
     if (ct > 0) {
-      let flag = true;
+      flag = true;
     }
     return flag;
   }
@@ -446,6 +482,7 @@ export class PEQ {
    */
   async doQuery(sql: string): Promise<pg.QueryResult<any>> {
     let result: any = null;
+    console.log(`SQL: ${sql}`);
     let client = new pg.Client(this.client_config);
     try {
       await client.connect();
@@ -457,5 +494,4 @@ export class PEQ {
     }
     return result;
   }
-
 }
