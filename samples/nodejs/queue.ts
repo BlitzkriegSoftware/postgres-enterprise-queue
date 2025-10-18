@@ -27,6 +27,12 @@ export const defaultRoleName = 'queue_role';
 export const emptyGuid: string = '00000000-0000-0000-0000-000000000000';
 
 /**
+ * Empty JSON
+ * @constant
+ */
+export const emptyJson: string = '{}';
+
+/**
  * Default: User
  * @constant
  */
@@ -114,6 +120,7 @@ export class QueueError extends Error {
  * @class
  */
 export class PEQ {
+  
   /**
    * @field
    * Connection String - To Postgres SQL Server
@@ -129,6 +136,11 @@ export class PEQ {
    * Role Name (unused)
    */
   private roleName: string;
+  /**
+   * @field
+   * PG Client Config
+   */
+  private client_config: pg.ClientConfig;
 
   /**
    * CTOR
@@ -145,6 +157,10 @@ export class PEQ {
     this.connectionString = connectionString;
     this.schemaName = schemaname;
     this.roleName = rolename;
+
+    this.client_config = {
+      connectionString: connectionString
+    };
   }
 
   /**
@@ -192,13 +208,13 @@ export class PEQ {
    * @param item_ttl {number} - how long should it live, zero is take system default
    * @returns {string} - the computed message_id
    */
-  enqueue(
+  async enqueue(
     msg_json: JSON,
     message_id: string = uuidv4(),
     delay_seconds: number = 0,
     who_by: string = defaultUser,
     item_ttl: number = 0
-  ): string {
+  ): Promise<string> {
     if (JSON.stringify(msg_json).length < minJsonSize) {
       throw new QueueError(
         'JSON Payload invalid (small)',
@@ -218,6 +234,14 @@ export class PEQ {
       );
     }
 
+    // IN message_json json,
+    // IN message_id uuid DEFAULT uuid_generate_v4(),
+    // IN delay_seconds integer DEFAULT 0,
+    // IN created_by character varying DEFAULT 'system'::character varying,
+    // in item_ttl integer DEFAULT 0
+    const sql = `call ${this.schemaName}.enqueue(${msg_json}, ${message_id}, ${delay_seconds}, ${who_by}, ${item_ttl});`;
+    const result = await this.doQuery(sql);
+
     return message_id;
   }
 
@@ -228,10 +252,10 @@ export class PEQ {
    * @param lease_seconds {number} - '-1' mean use the system default lease
    * @returns {QueueItem}
    */
-  dequeue(
+  async dequeue(
     client_id: string,
     lease_seconds: number = defaultLeaseSeconds
-  ): QueueItem {
+  ): Promise<QueueItem> {
     let message_id: string = emptyGuid;
     let expires: Date = new Date();
     let msg_json: JSON = JSON.parse('{}');
@@ -241,6 +265,19 @@ export class PEQ {
         'Bad Client Id (too small)',
         QueueErrorCode.InvalidClientId
       );
+    }
+
+    const sql = `select b.msg_id, b.expires, b.msg_json from ${this.schemaName}.dequeue(${client_id}, ${lease_seconds}) as b;`;
+    let result = await this.doQuery(sql);
+
+    if (result !== null && result.rowCount !== null && result.rowCount > 0) {
+      message_id = result.rows[0].msg_id;
+      expires = result.rows[0].expires;
+      msg_json = result.rows[0].msg_json;
+    } else {
+      message_id = emptyGuid;
+      expires = new Date();
+      msg_json = JSON.parse(emptyJson);
     }
 
     return {
@@ -258,11 +295,12 @@ export class PEQ {
    * @param who_by {string}
    * @param reason_why {string}
    */
-  ack(
+  async ack(
     message_id: string,
     who_by: string = defaultUser,
     reason_why: string = 'ack'
-  ) {
+  ): Promise<boolean> {
+    let flag: boolean = true;
     if (!PEQ.isValidUuid(message_id)) {
       throw new QueueError('Bad message id', QueueErrorCode.BadUuid);
     }
@@ -272,6 +310,9 @@ export class PEQ {
     if (PEQ.isBlank(reason_why)) {
       reason_why = 'ack';
     }
+    const sql = `call ${this.schemaName}.message_ack(${message_id}, ${who_by}, ${reason_why});`;
+    const result = await this.doQuery(sql);
+    return flag;
   }
 
   /**
@@ -281,11 +322,12 @@ export class PEQ {
    * @param who_by {string}
    * @param reason_why {string}
    */
-  nak(
+  async nak(
     message_id: string,
     who_by: string = defaultUser,
     reason_why: string = 'nak'
-  ) {
+  ): Promise<boolean> {
+    let flag: boolean = true;
     if (!PEQ.isValidUuid(message_id)) {
       throw new QueueError('Bad message id', QueueErrorCode.BadUuid);
     }
@@ -295,6 +337,11 @@ export class PEQ {
     if (PEQ.isBlank(reason_why)) {
       reason_why = 'nak';
     }
+
+    const sql = `call ${this.schemaName}.message_nak(${message_id}, ${who_by}, ${reason_why});`;
+    const result = await this.doQuery(sql);
+
+    return flag;
   }
 
   /**
@@ -304,11 +351,12 @@ export class PEQ {
    * @param who_by {string}
    * @param reason_why {string}
    */
-  rej(
+  async rej(
     message_id: string,
     who_by: string = defaultUser,
     reason_why: string = 'rej'
   ) {
+    let flag: boolean = true;
     if (!PEQ.isValidUuid(message_id)) {
       throw new QueueError('Bad message id', QueueErrorCode.BadUuid);
     }
@@ -318,6 +366,9 @@ export class PEQ {
     if (PEQ.isBlank(reason_why)) {
       reason_why = 'rej';
     }
+    const sql = `call ${this.schemaName}.message_rej(${message_id}, ${who_by}, ${reason_why});`;
+    const result = await this.doQuery(sql);
+    return flag;
   }
 
   /**
@@ -329,12 +380,13 @@ export class PEQ {
    * @param who_by {string}
    * @param reason_why {string}
    */
-  rsh(
+  async rsh(
     message_id: string,
     delay_seconds: number = defaultRescheduleDelaySeconds,
     who_by: string = defaultUser,
     reason_why: string = 'rsh'
-  ) {
+  ): Promise<boolean> {
+    let flag: boolean = true;
     if (!PEQ.isValidUuid(message_id)) {
       throw new QueueError('Bad message id', QueueErrorCode.BadUuid);
     }
@@ -347,6 +399,9 @@ export class PEQ {
     if (PEQ.isBlank(reason_why)) {
       reason_why = 'rsh';
     }
+    const sql = `call ${this.schemaName}.message_rej(${message_id}, ${delay_seconds} , ${who_by}, ${reason_why});`;
+    const result = await this.doQuery(sql);
+    return flag;
   }
 
   /**
@@ -354,9 +409,15 @@ export class PEQ {
    * @function
    * @returns {boolean} - if schema contains a queue
    */
-  queueExists(): boolean {
+  async queueExists(): Promise<boolean> {
     let flag: boolean = false;
 
+    const sql = `SELECT c.relname AS object_name, CASE c.relkind WHEN 'r' THEN 'TABLE' WHEN 'v' THEN 'VIEW' WHEN 'm' THEN 'MATERIALIZED_VIEW' WHEN 'S' THEN 'SEQUENCE' ELSE 'OTHER_RELATION' END AS object_type FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = '${this.schemaName}' AND c.relkind IN ('r', 'v', 'm', 'S') ORDER BY object_type, object_name;`;
+    const result = await this.doQuery(sql);
+
+    if (result !== null && result.rowCount !== null && result.rowCount > 0) {
+      flag = true;
+    }
     return flag;
   }
 
@@ -365,9 +426,36 @@ export class PEQ {
    * @function
    * @returns {boolean} - if there are messages
    */
-  hasMessages(): boolean {
+  async hasMessages(): Promise<boolean> {
     let flag: boolean = false;
-
+    const sql = `select count(1) as CT from ${this.schemaName}.message_queue;`;
+    const result = await this.doQuery(sql);
+    let ct = result.rows[0].CT;
+    if (ct > 0) {
+      let flag = true;
+    }
     return flag;
   }
+
+  /**
+   * doQuery in SQL, out QueryResult<any>
+   * @async
+   * @function
+   * @param sql {string}
+   * @returns {pg.QueryResult<any>}
+   */
+  async doQuery(sql: string): Promise<pg.QueryResult<any>> {
+    let result: any = null;
+    let client = new pg.Client(this.client_config);
+    try {
+      await client.connect();
+      result = await client.query(sql);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      await client.end();
+    }
+    return result;
+  }
+
 }
