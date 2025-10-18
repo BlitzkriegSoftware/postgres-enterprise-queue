@@ -25,6 +25,22 @@ Import-Module Microsoft.PowerShell.Utility
 [string]$VOL = "/var/lib/postgresql/data"
 [string]$PGPASS_FILE = '/var/lib/postgresql/data/.pgpass'
 
+function Get-PortBlocked {
+	param (
+		[Int32]$Port 
+	)
+
+	[bool]$flag = $false;
+
+	$inUse = Test-NetConnection localhost -Port 5432
+
+	if (($null -eq $inUse) -or ($inUse.TcpTestSucceeded)) {
+		$flag = $true;
+	}
+
+	return $flag;
+}
+
 function Get-DockerRunning {
 
 	[bool]$DockerAlive = $false
@@ -50,7 +66,13 @@ Push-Location $PSScriptRoot
 [bool]$da = Get-DockerRunning
 if (! $da) {
 	Write-Error "docker must be running 1st"
-	return 1
+	return 1;
+}
+
+[bool]$isBlocked = Get-PortBlocked -Port 5432;
+if ($isBlocked) {
+	Write-Error "Port for postgres is in use! Stop local service before re-running."
+	return 2;
 }
 
 # Dispose of any old running Postgres
