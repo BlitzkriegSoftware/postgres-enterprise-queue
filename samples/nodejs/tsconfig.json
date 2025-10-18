@@ -24,6 +24,9 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false,
+
+    // where to put output
+    "outDir": "./dist"
   },
   "include": ["."],
   "exclude": ["node_modules", "dist"]
