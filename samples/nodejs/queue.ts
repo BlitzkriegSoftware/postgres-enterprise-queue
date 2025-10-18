@@ -373,7 +373,7 @@ export class PEQ {
     if (PEQ.isBlank(reason_why)) {
       reason_why = 'ack';
     }
-    const sql = `call ${this.schemaName}.message_ack(${message_id}, ${who_by}, ${reason_why});`;
+    const sql = `call ${this.schemaName}.message_ack(${PEQ.quoteIt(message_id)}, ${PEQ.quoteIt(who_by)}, ${PEQ.quoteIt(reason_why)});`;
     const result = await this.doQuery(sql);
     return flag;
   }
@@ -402,7 +402,7 @@ export class PEQ {
       reason_why = 'nak';
     }
 
-    const sql = `call ${this.schemaName}.message_nak(${message_id}, ${who_by}, ${reason_why});`;
+    const sql = `call ${this.schemaName}.message_nak(${PEQ.quoteIt(message_id)}, ${PEQ.quoteIt(who_by)}, ${PEQ.quoteIt(reason_why)});`;
     const result = await this.doQuery(sql);
 
     return flag;
@@ -431,7 +431,7 @@ export class PEQ {
     if (PEQ.isBlank(reason_why)) {
       reason_why = 'rej';
     }
-    const sql = `call ${this.schemaName}.message_rej(${message_id}, ${who_by}, ${reason_why});`;
+    const sql = `call ${this.schemaName}.message_rej(${PEQ.quoteIt(message_id)}, ${PEQ.quoteIt(who_by)}, ${PEQ.quoteIt(reason_why)});`;
     const result = await this.doQuery(sql);
     return flag;
   }
@@ -465,7 +465,8 @@ export class PEQ {
     if (PEQ.isBlank(reason_why)) {
       reason_why = 'rsh';
     }
-    const sql = `call ${this.schemaName}.message_rej(${message_id}, ${delay_seconds} , ${who_by}, ${reason_why});`;
+
+    const sql = `call ${this.schemaName}.message_rej(${PEQ.quoteIt(message_id)}, ${delay_seconds}, ${PEQ.quoteIt(who_by)}, ${PEQ.quoteIt(reason_why)});`;
     const result = await this.doQuery(sql);
     return flag;
   }
