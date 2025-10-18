@@ -101,7 +101,7 @@ test('uow', async () => {
   for (let i = 0; i < item_count; i++) {
     try {
       var qi = await queue.dequeue(client_id, defaultLeaseSeconds);
-      console.log(`${qi.msg_id}, ${qi.expires}, ${qi.msg_json}`);
+      console.log(`${qi.msg_id}, ${qi.expires}, ${JSON.stringify(qi.msg_json)}`);
       const die_roll = getRandomInt(1, 100);
       if (die_roll < 20) {
         await queue.rej(qi.msg_id, client_id, 'REJ-Test');

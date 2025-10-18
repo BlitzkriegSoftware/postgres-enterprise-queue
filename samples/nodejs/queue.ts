@@ -466,7 +466,7 @@ export class PEQ {
       reason_why = 'rsh';
     }
 
-    const sql = `call ${this.schemaName}.message_rej(${PEQ.quoteIt(message_id)}, ${delay_seconds}, ${PEQ.quoteIt(who_by)}, ${PEQ.quoteIt(reason_why)});`;
+    const sql = `call ${this.schemaName}.message_reschedule(${PEQ.quoteIt(message_id)}, ${delay_seconds}, ${PEQ.quoteIt(who_by)}, ${PEQ.quoteIt(reason_why)});`;
     const result = await this.doQuery(sql);
     return flag;
   }
