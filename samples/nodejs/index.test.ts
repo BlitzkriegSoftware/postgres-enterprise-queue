@@ -2,7 +2,7 @@
 /**
  * Requires
  */
-import { checkPort } from './checkPort';
+import { checkPort } from './checkPort.ts';
 import { v4 as uuidv4 } from 'uuid';
 import { describe, test, expect } from '@jest/globals';
 import {
@@ -11,7 +11,7 @@ import {
   QueueError,
   QueueErrorCode,
   defaultConnectionString
-} from './queue';
+} from './queue.ts';
 
 const item_count = 10;
 const empty_msg = JSON.parse('{}');
