@@ -205,6 +205,7 @@ export class PEQ {
 
   /**
    * quoteIt - puts Postgres single-quotes around a string
+   * @function
    * @param text
    * @returns
    */
@@ -220,8 +221,32 @@ export class PEQ {
   }
 
   /**
+   * doQuery in SQL, out QueryResult<any>
+   * @async
+   * @function
+   * @param sql {string}
+   * @returns {pg.QueryResult<any>}
+   */
+  async doQuery(sql: string): Promise<pg.QueryResult<any>> {
+    let result: any = null;
+    console.log(`SQL: ${sql}`);
+    let client = new pg.Client(this.client_config);
+    try {
+      await client.connect();
+      result = await client.query(sql);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      await client.end();
+    }
+    return result;
+  }
+
+  /**
    * Enqueue a message
    * @name #enqueue
+   * @function
+   * @async
    * @param msg_json {JSON}
    * @param message_id {string} - valid UUID/GUID or empty string to autogenerate one
    * @param delay_seconds {integer} - delay making message available for X seconds
@@ -283,6 +308,8 @@ export class PEQ {
   /**
    * Dequeue one message
    * @name #dequeue
+   * @function
+   * @async
    * @param client_id {string} - unique client id. If in doubt have the client use a guid per thread/process
    * @param lease_seconds {number} - '-1' mean use the system default lease
    * @returns {QueueItem}
@@ -302,7 +329,7 @@ export class PEQ {
       );
     }
 
-    const sql = `select b.msg_id, b.expires, b.msg_json from ${this.schemaName}.dequeue(${client_id}, ${lease_seconds}) as b;`;
+    const sql = `select b.msg_id, b.expires, b.msg_json from ${this.schemaName}.dequeue(${PEQ.quoteIt(client_id)}, ${lease_seconds}) as b;`;
     let result = await this.doQuery(sql);
 
     if (result !== null && result.rowCount !== null && result.rowCount > 0) {
@@ -326,6 +353,7 @@ export class PEQ {
    * Ack - Unit of Work - Success - To History
    * @name #ack
    * @function
+   * @async
    * @param message_id {string} - valid UUID/GUID
    * @param who_by {string}
    * @param reason_why {string}
@@ -353,6 +381,7 @@ export class PEQ {
   /**
    * Nak - Unit of Work - Can't Finish - Short Reschedule
    * @function
+   * @async
    * @param message_id {string} - valid UUID/GUID
    * @param who_by {string}
    * @param reason_why {string}
@@ -382,6 +411,7 @@ export class PEQ {
   /**
    * Rej - Unit of Work - Bad Message - To Dead Letter
    * @function
+   * @async
    * @param message_id {string} - valid UUID/GUID
    * @param who_by {string}
    * @param reason_why {string}
@@ -410,6 +440,7 @@ export class PEQ {
    * RSH - Unit of Work - Long Reschedule
    * @name #rsh
    * @function
+   * @async
    * @param message_id {string} - valid UUID/GUID
    * @param delay_seconds {number} - seconds to delay processing the message
    * @param who_by {string}
@@ -442,6 +473,7 @@ export class PEQ {
   /**
    * Queue Exists
    * @function
+   * @async
    * @returns {boolean} - if schema contains a queue
    */
   async queueExists(): Promise<boolean> {
@@ -459,6 +491,7 @@ export class PEQ {
   /**
    * Checks to see if there are messages
    * @function
+   * @async
    * @returns {boolean} - if there are messages
    */
   async hasMessages(): Promise<boolean> {
@@ -474,24 +507,13 @@ export class PEQ {
   }
 
   /**
-   * doQuery in SQL, out QueryResult<any>
-   * @async
+   * Reset Queue
    * @function
-   * @param sql {string}
-   * @returns {pg.QueryResult<any>}
+   * @async
    */
-  async doQuery(sql: string): Promise<pg.QueryResult<any>> {
-    let result: any = null;
-    console.log(`SQL: ${sql}`);
-    let client = new pg.Client(this.client_config);
-    try {
-      await client.connect();
-      result = await client.query(sql);
-    } catch (e) {
-      console.log(e);
-    } finally {
-      await client.end();
-    }
-    return result;
+  async ResetQueue() {
+      const sql: string = `CALL test01.reset_queue();`
+      await this.doQuery(sql);
   }
+
 }
