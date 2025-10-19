@@ -69,6 +69,11 @@ export const defaultRescheduleDelaySeconds: number = 3600;
 export const minLeaseSeconds: number = 15;
 
 /**
+ * Minimum TTL for a message in Minutes
+ */
+export const minMessageTtlMinutes: number = 1440;
+
+/**
  * @type
  * QueueItem
  */
