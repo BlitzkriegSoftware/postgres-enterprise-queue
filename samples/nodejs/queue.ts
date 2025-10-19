@@ -98,7 +98,8 @@ export enum QueueErrorCode {
   BadField,
   NoMessageAvailable,
   LeaseExpired,
-  InvalidClientId
+  InvalidClientId,
+  QueryExecution
 }
 
 /**
@@ -225,6 +226,10 @@ export class PEQ {
       result = await client.query(sql);
     } catch (e) {
       console.log(e);
+      throw new QueueError(
+        `doQuery(${sql}), Error: ${e}`,
+        QueueErrorCode.QueryExecution
+      );
     } finally {
       await client.end();
     }
@@ -502,8 +507,7 @@ export class PEQ {
    * @async
    */
   async ResetQueue() {
-      const sql: string = `CALL test01.reset_queue();`
-      await this.doQuery(sql);
+    const sql: string = `CALL test01.reset_queue();`;
+    await this.doQuery(sql);
   }
-
 }
