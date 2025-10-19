@@ -45,7 +45,7 @@ public class Queue_Test
     public void Simulate_UoW()
     {
         bool isOk = true;
-        const int test_count = 10;
+        const int test_count = 20;
         string client_id = Guid.NewGuid().ToString();
 
         PEQ queue = MakeClient();
@@ -61,16 +61,16 @@ public class Queue_Test
             try
             {
                 var qi = queue.Dequeue(client_id, PEQ.DefaultLeaseSeconds);
-                var roll = dice.Next(1, 100);
+                var roll = dice.Next(1, 80);
                 switch (roll)
                 {
-                    case < 20:
+                    case < 15:
                         queue.Rej(qi.Msg_Id, client_id);
                         break;
-                    case < 40:
+                    case < 30:
                         queue.Nak(qi.Msg_Id, client_id);
                         break;
-                    case < 60:
+                    case < 45:
                         queue.Rsh(qi.Msg_Id, PEQ.DefaultRescheduleDelaySeconds, client_id);
                         break;
                     default:
