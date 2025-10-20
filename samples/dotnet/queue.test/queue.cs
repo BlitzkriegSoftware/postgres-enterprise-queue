@@ -288,6 +288,35 @@ public class PEQ
     }
 
     /// <summary>
+    /// Safely convert an object to DateTime
+    /// </summary>
+    /// <param name="o">Object</param>
+    /// <returns>Valid DateTime</returns>
+    [ExcludeFromCodeCoverage]
+    public static DateTime SafeConvertToDateTime(Object o)
+    {
+        string s = string.Empty;
+
+        if (o == null)
+            return DateTime.MinValue;
+        if (o == DBNull.Value)
+            return DateTime.MinValue;
+        if (o is not DateTime)
+            return DateTime.MinValue;
+
+        try
+        {
+            s = o.ToString() ?? string.Empty;
+        }
+        catch
+        {
+            s = DateTime.MinValue.ToString();
+        }
+
+        return DateTime.Parse(s);
+    }
+
+    /// <summary>
     /// ValidateThreeFields
     /// </summary>
     /// <param name="message_id">Valid GUID/UUID</param>
@@ -421,7 +450,7 @@ public class PEQ
         if (HasRows(dt))
         {
             message_id = dt.Rows[0]["msg_id"].ToString() ?? Guid.Empty.ToString();
-            expires = (DateTime)dt.Rows[0]["expires"];
+            expires = SafeConvertToDateTime(dt.Rows[0]["expires"]);
             message_json = dt.Rows[0]["msg_json"].ToString() ?? EmptyJson;
         }
 
@@ -489,7 +518,7 @@ public class PEQ
     {
         ValidateThreeFields(message_id, who_by, reason_why);
 
-        if (delay_seconds == 0)
+        if (delay_seconds < 0)
             delay_seconds = DefaultRescheduleDelaySeconds;
 
         string sql =

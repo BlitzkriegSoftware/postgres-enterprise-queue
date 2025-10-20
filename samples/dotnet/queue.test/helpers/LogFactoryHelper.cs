@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
 namespace queue.test.csproj;
@@ -5,6 +6,7 @@ namespace queue.test.csproj;
 /// <summary>
 /// Log Factory Helper
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class LogFactoryHelper
 {
     private static ILoggerFactory? _factory = null;

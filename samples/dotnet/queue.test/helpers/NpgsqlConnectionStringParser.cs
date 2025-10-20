@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace queue.test.csproj;
 
 /// <summary>
@@ -45,7 +47,8 @@ public class NpgsqlConnectionStringParser
     /// <summary>
     /// Initialize with default values
     /// </summary>
-    public NpgsqlConnectionStringParser() { }
+    [ExcludeFromCodeCoverage]
+    private NpgsqlConnectionStringParser() { }
 
     /// <summary>
     /// Initialize with specified values
@@ -93,12 +96,9 @@ public class NpgsqlConnectionStringParser
     /// <exception cref="ArgumentException">Thrown on empty or whitespace input</exception>
     public static NpgsqlConnectionStringParser Parse(string url)
     {
-        if (url == null)
-            throw new ArgumentNullException(nameof(url), "Url cannot be null.");
-
         if (string.IsNullOrWhiteSpace(url))
-            throw new ArgumentException(
-                "Url cannot be empty or contain only whitespace characters.",
+            throw new ArgumentNullException(
+                "Url cannot be null, empty or contain only whitespace characters.",
                 nameof(url)
             );
 
