@@ -7,62 +7,62 @@ class PEQ:
     """
     Default connection string - the demo docker one
     """
-    default_connection_string = 'postgresql://postgres:password123-@localhost:5432/postgres';
+    default_connection_string = 'postgresql://postgres:password123-@localhost:5432/postgres'
 
     """
     Default Schema Name
     """
-    default_schema_name = 'test01';
+    default_schema_name = 'test01'
 
     """
     Default Role Name
     """
-    default_role_name = 'queue_role';
+    default_role_name = 'queue_role'
 
     """
     Default: User
     """
-    default_user = 'system';
+    default_user = 'system'
 
     """
     Default Lease Seconds
     """
-    default_lease_seconds = -1;
+    default_lease_seconds = -1
 
     """
     Default: Reschedule Delay in Seconds
     """
-    default_reschedule_delay_seconds = 3600;
+    default_reschedule_delay_seconds = 3600
 
     """
     Default Message TTL
     """
-    default_message_ttl = 4320;
+    default_message_ttl = 4320
 
     """
     Empty Guid
     """
-    empty_guid = '00000000-0000-0000-0000-000000000000';
+    empty_guid = '00000000-0000-0000-0000-000000000000'
 
     """
     Empty JSON
     """
-    empty_json = '{}';
+    empty_json = '{}'
 
     """
     Minimum size of a JSON payload
     """
-    min_json_size = 2;
+    min_json_size = 2
 
     """
     Minimum lease duration in seconds
     """
-    min_lease_seconds = 15;
+    min_lease_seconds = 15
 
     """
     Minimum TTL for a message in Minutes
     """
-    min_message_ttl_minutes = 1440;
+    min_message_ttl_minutes = 1440
 
     """
     Postgres Quote Character
@@ -99,7 +99,7 @@ class PEQ:
         if item_ttl < PEQ.min_message_ttl_minutes:
             item_ttl = PEQ.min_message_ttl_minutes
 
-        sql: str = f"call ${self.schema_name}.enqueue({self.quote_it(json)}, {self.quote_it(message_id)}, ${delay_seconds}, {self.quote_it(who_by)}, ${item_ttl});"
+        sql: str = f"call ${self.schema_name}.enqueue({self.quote_it(json)}, {self.quote_it(message_id)}, ${delay_seconds}, {self.quote_it(who_by)}, ${item_ttl})"
         self.do_query(sql)
         
         return message_id
@@ -111,7 +111,7 @@ class PEQ:
         expires: datetime = datetime.now()
         msg_json: str = PEQ.empty_json
         
-        sql: str = f"select b.msg_id, b.expires, b.msg_json from {self.schema_name}.dequeue({PEQ.quote_it(client_id)}, {lease_seconds}) as b;"
+        sql: str = f"select b.msg_id, b.expires, b.msg_json from {self.schema_name}.dequeue({PEQ.quote_it(client_id)}, {lease_seconds}) as b"
         dt = self.do_query(sql)
         if self.has_rows(dt):
             msg_id = dt[0]["msg_id"]
@@ -124,35 +124,35 @@ class PEQ:
     Acknowledgement (ack)
     """
     def ack(self, message_id:str,  who_by:str = default_user, reason_why: str = "ack"):
-        sql : str = f"call ${self.schema_name}.message_ack({self.quoteIt(message_id)}, {self.quoteIt(who_by)}, {self.quoteIt(reason_why)});"
+        sql : str = f"call ${self.schema_name}.message_ack({self.quoteIt(message_id)}, {self.quoteIt(who_by)}, {self.quoteIt(reason_why)})"
         self.do_query(sql)
     
     """
     Negative Ack (nak)
     """
     def nak(self, message_id:str,  who_by:str = default_user, reason_why: str = "nak"):
-        sql : str = f"call ${self.schema_name}.message_nak({self.quoteIt(message_id)}, {self.quoteIt(who_by)}, {self.quoteIt(reason_why)});"
+        sql : str = f"call ${self.schema_name}.message_nak({self.quoteIt(message_id)}, {self.quoteIt(who_by)}, {self.quoteIt(reason_why)})"
         self.do_query(sql)
     
     """
     Reject (rej)
     """
     def rej(self, message_id:str,  who_by:str = default_user, reason_why: str = "rej"):
-        sql : str = f"call ${self.schema_name}.message_rej({self.quoteIt(message_id)}, {self.quoteIt(who_by)}, {self.quoteIt(reason_why)});"
+        sql : str = f"call ${self.schema_name}.message_rej({self.quoteIt(message_id)}, {self.quoteIt(who_by)}, {self.quoteIt(reason_why)})"
         self.do_query(sql)
     
     """
     Reschedule (rsh)
     """
     def rsh(self, message_id:str, delay_seconds:int = 0, who_by:str = default_user, reason_why: str = "rsh"):
-        sql: str = f"call {self.schema_name}.message_reschedule({self.quote_it(message_id)}, {delay_seconds}, {self.quote_it(who_by)}, {self.quote_it(reason_why)});"
+        sql: str = f"call {self.schema_name}.message_reschedule({self.quote_it(message_id)}, {delay_seconds}, {self.quote_it(who_by)}, {self.quote_it(reason_why)})"
         self.do_query(sql)
     
     """
     Test to see if a queue exists
     """
     def queue_exists(self) -> bool:
-        sql: str = f"SELECT c.relname AS object_name, CASE c.relkind WHEN 'r' THEN 'TABLE' WHEN 'v' THEN 'VIEW' WHEN 'm' THEN 'MATERIALIZED_VIEW' WHEN 'S' THEN 'SEQUENCE' ELSE 'OTHER_RELATION' END AS object_type FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = '{self.schema_name}' AND c.relkind IN ('r', 'v', 'm', 'S') ORDER BY object_type, object_name;"
+        sql: str = f"SELECT c.relname AS object_name, CASE c.relkind WHEN 'r' THEN 'TABLE' WHEN 'v' THEN 'VIEW' WHEN 'm' THEN 'MATERIALIZED_VIEW' WHEN 'S' THEN 'SEQUENCE' ELSE 'OTHER_RELATION' END AS object_type FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = '{self.schema_name}' AND c.relkind IN ('r', 'v', 'm', 'S') ORDER BY object_type, object_name"
         dt = self.do_query(self, sql)
         return self.has_rows(dt)
     
@@ -160,7 +160,7 @@ class PEQ:
     Test to see if a queue has messages
     """
     def has_messages(self) -> bool:
-        sql: str = f"select count(1) as CT from {self.schemaName}.message_queue;"
+        sql: str = f"select count(1) as CT from {self.schemaName}.message_queue"
         dt = self.do_query(self, sql)
         return self.has_rows(dt)
     
@@ -168,7 +168,7 @@ class PEQ:
     Reset a queue to empty state
     """
     def reset_queue(self):
-        sql: str = f"CALL test01.reset_queue();"
+        sql: str = f"CALL test01.reset_queue()"
         self.do_query(self, sql)
 
     """
