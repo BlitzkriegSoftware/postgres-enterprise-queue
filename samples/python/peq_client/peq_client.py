@@ -2,7 +2,10 @@ from datetime import datetime
 import psycopg2
 import re
 import uuid
-    
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
 class peq_client:
     """
     Default connection string - the demo docker one
@@ -106,6 +109,7 @@ class peq_client:
             item_ttl = peq_client.min_message_ttl_minutes
 
         sql: str = f"call {self.schema_name}.enqueue({peq_client.quote_it(json)}, {peq_client.quote_it(message_id)}, {delay_seconds}, {peq_client.quote_it(who_by)}, {item_ttl})"
+        
         self.do_query(sql)
         
         return message_id
@@ -123,10 +127,11 @@ class peq_client:
     
         sql: str = f"select b.msg_id, b.expires, b.msg_json from {self.schema_name}.dequeue({peq_client.quote_it(client_id)}, {lease_seconds}) as b"
         dt = self.do_query(sql)
-        if self.has_rows(dt):
-            msg_id = dt[0]["msg_id"]
-            expires = dt[0]["expires"]
-            msg_json = dt[0]["msg_json"]
+        if peq_client.has_rows(dt):
+            msg_id = dt[0][0]
+            if msg_id != peq_client.empty_guid:
+                expires = dt[0][1]
+                msg_json = dt[0][2]
         
         return msg_id, expires, msg_json
         
@@ -163,30 +168,32 @@ class peq_client:
     """
     def queue_exists(self) -> bool:
         sql: str = f"SELECT c.relname AS object_name, CASE c.relkind WHEN 'r' THEN 'TABLE' WHEN 'v' THEN 'VIEW' WHEN 'm' THEN 'MATERIALIZED_VIEW' WHEN 'S' THEN 'SEQUENCE' ELSE 'OTHER_RELATION' END AS object_type FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = '{self.schema_name}' AND c.relkind IN ('r', 'v', 'm', 'S') ORDER BY object_type, object_name"
-        dt = self.do_query(self, sql)
-        return self.has_rows(dt)
+        dt = self.do_query(sql)
+        return peq_client.has_rows(dt)
     
     """
     Test to see if a queue has messages
     """
     def has_messages(self) -> bool:
         sql: str = f"select count(1) as CT from {self.schemaName}.message_queue"
-        dt = self.do_query(self, sql)
-        return self.has_rows(dt)
+        dt = self.do_query(sql)
+        return peq_client.has_rows(dt)
     
     """
     Reset a queue to empty state
     """
     def reset_queue(self):
         sql: str = f"CALL test01.reset_queue()"
-        self.do_query(self, sql)
+        self.do_query(sql)
 
     """
     Does a query give sql returns rows
     """
     def do_query(self, sql: str) -> list[tuple[any]]:
-        print(f"SQL: {sql}")
-        
+        debug_message: str = f"SQL: {sql}"
+        print(debug_message)
+        logging.debug(debug_message)
+    
         try:
             conn = psycopg2.connect(self.connection_string)
             cur = conn.cursor()
@@ -208,11 +215,12 @@ class peq_client:
     """
     Test to see if data table has rows
     """
-    def has_rows(self, dt:list[tuple[any]]) -> bool:
+    @staticmethod
+    def has_rows( dt:list[tuple[any]]) -> bool:
         if dt is None:
             return False
         
-        if dt.count <= 0:
+        if len(dt) <= 0:
             return False
         
         return True
@@ -233,9 +241,10 @@ class peq_client:
             text = text + delim
         return text
     
-        """
-        Test is a string a valid uuid/guid
-        """
-    def is_uuid(self, text: str) -> bool:
+    """
+    Test is a string a valid uuid/guid
+    """
+    @staticmethod
+    def is_uuid(text: str) -> bool:
         pattern = "/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i"
         return re.match(pattern, text) is not None

@@ -1,6 +1,8 @@
 from pytest import *
 import uuid
 import random
+import logging
+import logging.config
 from datetime import datetime
 
 import sys
@@ -8,6 +10,30 @@ sys.path.append("../peq_client/")
 from peq_client import peq_client
 
 test_count: int = 5
+
+# Logging 
+logging_config = {
+    'version': 1,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+            'level': 'DEBUG',
+            'formatter': 'detailed',
+        },
+    },
+    'formatters': {
+        'detailed': {
+            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        },
+    },
+    'root': {
+        'level': 'DEBUG',
+        'handlers': ['console'],
+    },
+}
+logging.config.dictConfig(logging_config)
+logger = logging.getLogger(__name__)
 
 def test_uow():
     flag : bool = True
@@ -24,11 +50,14 @@ def test_uow():
     
         for i in range(test_count):
             where_am_i = "enqueue"
-            client.enqueue(client.empty_json)
+            msg_id = client.enqueue(client.empty_json)
+            logging.info(f"{where_am_i}, Id: {msg_id}")
         
         for i in range(test_count):
             where_am_i = "dequeue"
             (msg_id, expires, msg_json) = client.dequeue(client_id)
+            
+            logging.info(f"{where_am_i}, Id: {msg_id}, Expires: {expires}, Json: {msg_json}")
             
             assert msg_id.__len__ > 0
             assert expires > datetime.now()
