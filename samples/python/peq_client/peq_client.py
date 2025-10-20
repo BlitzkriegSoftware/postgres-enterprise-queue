@@ -93,19 +93,19 @@ class peq_client:
                 item_ttl: int = default_message_ttl
         ) -> str:
 
-        if json.__len__ <= peq_client.min_json_size:
+        if len(json) < peq_client.min_json_size:
             raise ValueError("Invalid JSON Payload")
 
-        if not message_id or message_id.__len__ <= 0 or message_id == peq_client.empty_guid:
+        if not message_id or len(message_id) <= 0 or message_id == peq_client.empty_guid:
             message_id = str(uuid.uuid4())
 
-        if not who_by or who_by.__len__ <= 0:
+        if not who_by or len(who_by) < 1:
             raise ValueError("Invalid who_by")
         
         if item_ttl < peq_client.min_message_ttl_minutes:
             item_ttl = peq_client.min_message_ttl_minutes
 
-        sql: str = f"call ${self.schema_name}.enqueue({self.quote_it(json)}, {self.quote_it(message_id)}, ${delay_seconds}, {self.quote_it(who_by)}, ${item_ttl})"
+        sql: str = f"call {self.schema_name}.enqueue({peq_client.quote_it(json)}, {peq_client.quote_it(message_id)}, {delay_seconds}, {peq_client.quote_it(who_by)}, {item_ttl})"
         self.do_query(sql)
         
         return message_id
@@ -118,6 +118,9 @@ class peq_client:
         expires: datetime = datetime.now()
         msg_json: str = peq_client.empty_guid
         
+        if len(client_id) < 1:
+            raise ValueError("Invalid client_id")
+    
         sql: str = f"select b.msg_id, b.expires, b.msg_json from {self.schema_name}.dequeue({peq_client.quote_it(client_id)}, {lease_seconds}) as b"
         dt = self.do_query(sql)
         if self.has_rows(dt):
@@ -131,28 +134,28 @@ class peq_client:
     Acknowledgement (ack)
     """
     def ack(self, message_id:str,  who_by:str = default_user, reason_why: str = "ack"):
-        sql : str = f"call ${self.schema_name}.message_ack({self.quoteIt(message_id)}, {self.quoteIt(who_by)}, {self.quoteIt(reason_why)})"
+        sql : str = f"call {self.schema_name}.message_ack({self.quoteIt(message_id)}, {self.quoteIt(who_by)}, {self.quoteIt(reason_why)})"
         self.do_query(sql)
     
     """
     Negative Ack (nak)
     """
     def nak(self, message_id:str,  who_by:str = default_user, reason_why: str = "nak"):
-        sql : str = f"call ${self.schema_name}.message_nak({self.quoteIt(message_id)}, {self.quoteIt(who_by)}, {self.quoteIt(reason_why)})"
+        sql : str = f"call {self.schema_name}.message_nak({self.quoteIt(message_id)}, {self.quoteIt(who_by)}, {self.quoteIt(reason_why)})"
         self.do_query(sql)
     
     """
     Reject (rej)
     """
     def rej(self, message_id:str,  who_by:str = default_user, reason_why: str = "rej"):
-        sql : str = f"call ${self.schema_name}.message_rej({self.quoteIt(message_id)}, {self.quoteIt(who_by)}, {self.quoteIt(reason_why)})"
+        sql : str = f"call {self.schema_name}.message_rej({self.quoteIt(message_id)}, {self.quoteIt(who_by)}, {self.quoteIt(reason_why)})"
         self.do_query(sql)
     
     """
     Reschedule (rsh)
     """
     def rsh(self, message_id:str, delay_seconds:int = 0, who_by:str = default_user, reason_why: str = "rsh"):
-        sql: str = f"call {self.schema_name}.message_reschedule({self.quote_it(message_id)}, {delay_seconds}, {self.quote_it(who_by)}, {self.quote_it(reason_why)})"
+        sql: str = f"call {self.schema_name}.message_reschedule({peq_client.quote_it(message_id)}, {delay_seconds}, {peq_client.quote_it(who_by)}, {peq_client.quote_it(reason_why)})"
         self.do_query(sql)
     
     """
@@ -182,12 +185,17 @@ class peq_client:
     Does a query give sql returns rows
     """
     def do_query(self, sql: str) -> list[tuple[any]]:
+        print(f"SQL: {sql}")
+        
         try:
             conn = psycopg2.connect(self.connection_string)
             cur = conn.cursor()
             cur.execute(sql)
-            rows = cur.fetchall()
-            return rows
+            if sql.lower().startswith('call'):
+                return None
+            else:
+                rows = cur.fetchall()
+                return rows
 
         except psycopg2.Error as e:
             print(f"Error connecting to PostgreSQL: {e}")
@@ -212,10 +220,11 @@ class peq_client:
     """
     Postgres quote a string
     """
-    def quote_it(self, text, delim: str = postgres_quote) -> str:
-        if text is None:
+    @staticmethod
+    def quote_it(text: str = "", delim: str = postgres_quote) -> str:
+        if not isinstance(text, str):
             text = ""
-        if not text:
+        if len(text) < 1:
             text = ""
         text = text.strip()
         if not text.startswith(delim):
