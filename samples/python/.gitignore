@@ -7,3 +7,5 @@ __pycache__/
 *.egg
 *.egg-info/
 .vscode/
+.env
+*.log

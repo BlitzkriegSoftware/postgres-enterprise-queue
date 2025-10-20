@@ -3,7 +3,7 @@ import psycopg2
 import re
 import uuid
     
-class PEQ:
+class peq_client:
     """
     Default connection string - the demo docker one
     """
@@ -72,12 +72,18 @@ class PEQ:
     """
     CTOR
     """    
-    def __init__(self, connection_string, schema_name, role_name):
+    def __init__(
+        self, 
+        connection_string = default_connection_string, 
+        schema_name =default_schema_name, 
+        role_name = default_role_name
+    ):
         self.connection_string = connection_string
         self.schema_name = schema_name
         self.role_name = role_name
 
     """
+    enqueue
     """
     def enqueue(self, 
                 json:str, 
@@ -87,17 +93,17 @@ class PEQ:
                 item_ttl: int = default_message_ttl
         ) -> str:
 
-        if json.__len__ <= PEQ.min_json_size:
+        if json.__len__ <= peq_client.min_json_size:
             raise ValueError("Invalid JSON Payload")
 
-        if not message_id or message_id.__len__ <= 0 or message_id == PEQ.empty_guid:
+        if not message_id or message_id.__len__ <= 0 or message_id == peq_client.empty_guid:
             message_id = str(uuid.uuid4())
 
         if not who_by or who_by.__len__ <= 0:
             raise ValueError("Invalid who_by")
         
-        if item_ttl < PEQ.min_message_ttl_minutes:
-            item_ttl = PEQ.min_message_ttl_minutes
+        if item_ttl < peq_client.min_message_ttl_minutes:
+            item_ttl = peq_client.min_message_ttl_minutes
 
         sql: str = f"call ${self.schema_name}.enqueue({self.quote_it(json)}, {self.quote_it(message_id)}, ${delay_seconds}, {self.quote_it(who_by)}, ${item_ttl})"
         self.do_query(sql)
@@ -105,13 +111,14 @@ class PEQ:
         return message_id
     
     """
+    dequeue
     """
     def dequeue(self, client_id: str, lease_seconds: int = default_lease_seconds) -> tuple[str, datetime, str]:
-        msg_id: str = PEQ.empty_guid
+        msg_id: str = peq_client.empty_guid
         expires: datetime = datetime.now()
-        msg_json: str = PEQ.empty_json
+        msg_json: str = peq_client.empty_guid
         
-        sql: str = f"select b.msg_id, b.expires, b.msg_json from {self.schema_name}.dequeue({PEQ.quote_it(client_id)}, {lease_seconds}) as b"
+        sql: str = f"select b.msg_id, b.expires, b.msg_json from {self.schema_name}.dequeue({peq_client.quote_it(client_id)}, {lease_seconds}) as b"
         dt = self.do_query(sql)
         if self.has_rows(dt):
             msg_id = dt[0]["msg_id"]

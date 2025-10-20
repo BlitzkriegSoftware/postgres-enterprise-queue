@@ -1,47 +1,47 @@
 from pytest import *
 import uuid
 import random
-
 from datetime import datetime
-from ..peq_client.peq import PEQ 
+
+import sys
+sys.path.append("../peq_client/")
+from peq_client import peq_client
 
 test_count: int = 5
 
-class test_queue:
+def test_uow():
+    flag : bool = True
+    
+    client = peq_client.peq_client()
+    assert client is not None
 
-    def test_uow(self):
-        flag : bool = True
+    client_id = str(uuid.uuid4())
+    
+    try:    
+    
+        for i in range(test_count):
+            client.enqueue(client.empty_json)
         
-        client = PEQ()
-        assert client is not None
-
-        client_id = str(uuid.uuid4())
-        
-        try:    
-        
-            for i in range(test_count):
-                client.enqueue(PEQ.empty_json)
+        for i in range(test_count):
+            (msg_id, expires, msg_json) = client.dequeue(client_id)
             
-            for i in range(test_count):
-                (msg_id, expires, msg_json) = client.dequeue(client_id)
-                
-                assert msg_id.__len__ > 0
-                assert expires > datetime.now()
-                assert msg_json.__len__ > 0
-                
-                random_number = random.randint(1, 100)
-                
-                if random_number < 15:
-                    client.rej(msg_id, client_id)
-                elif random_number < 30:
-                    client.nak(msg_id, client_id)
-                elif random_number < 45:
-                    client.rsh(msg_id, PEQ.default_reschedule_delay_seconds, client_id)
-                else:
-                    client.ack(msg_id, client_id)
-                    
-        except Exception as ex:
-            print(ex)
-            flag = False
+            assert msg_id.__len__ > 0
+            assert expires > datetime.now()
+            assert msg_json.__len__ > 0
             
-        assert flag == True
+            random_number = random.randint(1, 100)
+            
+            if random_number < 15:
+                client.rej(msg_id, client_id)
+            elif random_number < 30:
+                client.nak(msg_id, client_id)
+            elif random_number < 45:
+                client.rsh(msg_id, peq_client.default_reschedule_delay_seconds, client_id)
+            else:
+                client.ack(msg_id, client_id)
+                
+    except Exception as ex:
+        print(ex)
+        flag = False
+        
+    assert flag == True
