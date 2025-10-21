@@ -139,21 +139,21 @@ class peq_client:
     Acknowledgement (ack)
     """
     def ack(self, message_id:str,  who_by:str = default_user, reason_why: str = "ack"):
-        sql : str = f"call {self.schema_name}.message_ack({self.quoteIt(message_id)}, {self.quoteIt(who_by)}, {self.quoteIt(reason_why)})"
+        sql : str = f"call {self.schema_name}.message_ack({peq_client.quote_it(message_id)}, {peq_client.quote_it(who_by)}, {peq_client.quote_it(reason_why)})"
         self.do_query(sql)
     
     """
     Negative Ack (nak)
     """
     def nak(self, message_id:str,  who_by:str = default_user, reason_why: str = "nak"):
-        sql : str = f"call {self.schema_name}.message_nak({self.quoteIt(message_id)}, {self.quoteIt(who_by)}, {self.quoteIt(reason_why)})"
+        sql : str = f"call {self.schema_name}.message_nak({peq_client.quote_it(message_id)}, {peq_client.quote_it(who_by)}, {peq_client.quote_it(reason_why)})"
         self.do_query(sql)
     
     """
     Reject (rej)
     """
     def rej(self, message_id:str,  who_by:str = default_user, reason_why: str = "rej"):
-        sql : str = f"call {self.schema_name}.message_rej({self.quoteIt(message_id)}, {self.quoteIt(who_by)}, {self.quoteIt(reason_why)})"
+        sql : str = f"call {self.schema_name}.message_rej({peq_client.quote_it(message_id)}, {peq_client.quote_it(who_by)}, {peq_client.quote_it(reason_why)})"
         self.do_query(sql)
     
     """
@@ -193,30 +193,35 @@ class peq_client:
         debug_message: str = f"SQL: {sql}"
         print(debug_message)
         logging.debug(debug_message)
-    
+        
+        conn = None
+        cur = None
+        rows = []
+        
         try:
-            conn = psycopg2.connect(self.connection_string)
-            cur = conn.cursor()
-            cur.execute(sql)
-            if sql.lower().startswith('call'):
-                return None
-            else:
-                rows = cur.fetchall()
-                return rows
+            with psycopg2.connect(self.connection_string) as conn:
+                # conn.autocommit = True
+                with conn.cursor() as cur:
+                    # cur.open()  
+                    cur.execute(sql)
+                    if not sql.lower().startswith('call'):
+                        rows = cur.fetchall()
 
-        except psycopg2.Error as e:
+        except Exception as e:
             print(f"Error connecting to PostgreSQL: {e}")
 
         finally:
-            if conn:
+            if conn is not None:
                 cur.close()
                 conn.close()
+
+        return rows
     
     """
     Test to see if data table has rows
     """
     @staticmethod
-    def has_rows( dt:list[tuple[any]]) -> bool:
+    def has_rows(dt: list[tuple[any]]) -> bool:
         if dt is None:
             return False
         

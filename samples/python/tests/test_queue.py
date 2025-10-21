@@ -59,9 +59,9 @@ def test_uow():
             
             logging.info(f"{where_am_i}, Id: {msg_id}, Expires: {expires}, Json: {msg_json}")
             
-            assert msg_id.__len__ > 0
+            assert len(msg_id) > 0
             assert expires > datetime.now()
-            assert msg_json.__len__ > 0
+            assert len(str(msg_json)) > 0
             
             random_number = random.randint(1, 100)
             
