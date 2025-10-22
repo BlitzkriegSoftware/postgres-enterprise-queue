@@ -512,7 +512,7 @@ export class PEQ {
    * @async
    */
   async ResetQueue() {
-    const sql: string = `CALL test01.reset_queue();`;
+    const sql: string = `CALL ${this.schemaName}.reset_queue();`;
     await this.doQuery(sql);
   }
 }

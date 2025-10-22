@@ -84,7 +84,7 @@ BEGIN
 
         select b.msg_id, b.expires, b.msg_json 
             into msg_id, ts, msg_json 
-            from test01.dequeue(client_id, lease_duration) as b;
+            from t{schema}est01.dequeue(client_id, lease_duration) as b;
 
         RAISE NOTICE '[%] dequeue. ID: %, expires: %, json: %', loop_count, msg_id, ts, msg_json;
 

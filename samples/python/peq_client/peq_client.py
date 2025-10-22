@@ -183,7 +183,7 @@ class peq_client:
     Reset a queue to empty state
     """
     def reset_queue(self):
-        sql: str = f"CALL test01.reset_queue()"
+        sql: str = f"CALL {self.schemaName}.reset_queue()"
         self.do_query(sql)
 
     """

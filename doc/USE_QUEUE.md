@@ -193,7 +193,7 @@ call {schema}.add_audit(
 * `msg_id`: the key of the message (uuid, guid)
 * `state_id`: a valid state (see [message_state](../data/sql/702_message_state_Data.sql) table)
 * `audit_by`: caller, typically 'system' or `client_id`
-* `reason_why`: (text) a text explaination that is searchable in the source code
+* `reason_why`: (text) a text explanation that is searchable in the source code
    - Use of a reason-code is a good practice 
 
 So querying the table `message_audit` table 'where' or 'order by' `message_id` is useful:

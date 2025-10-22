@@ -27,7 +27,7 @@ BEGIN
     ts := CURRENT_TIMESTAMP - make_interval( 0, 0, 0, history_retention, 0, 0, 0 );
 
     -- Delete old history rows
-    DELETE FROM test01.message_history WHERE created_on < ts;
+    DELETE FROM {schema}.message_history WHERE created_on < ts;
 
 END;
 

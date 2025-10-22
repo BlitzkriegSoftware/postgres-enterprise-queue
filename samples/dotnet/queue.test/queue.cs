@@ -557,7 +557,7 @@ public class PEQ
     /// </summary>
     public void ResetQueue()
     {
-        string sql = "CALL test01.reset_queue();";
+        string sql = $"CALL {this.schemaName}.reset_queue();";
         _ = DoQuery(sql);
     }
 }
